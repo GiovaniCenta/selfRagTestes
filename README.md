@@ -2,7 +2,7 @@
 
 This project validates claims made in summaries against original legal documents (Acórdãos from TCU - Brazilian Court of Accounts) using a RAG (Retrieval-Augmented Generation) pipeline. It includes both a command-line interface and a Streamlit web application.
 
-## Modules Description
+##  Modules Description
 
 *   **`main.py`**: The main script for running the validation process via the command line. It orchestrates the loading, retrieving, reranking, and validation steps for a given pair of Acórdão and Summary files.
 *   **`app.py`**: A Streamlit web application providing a user interface for:
