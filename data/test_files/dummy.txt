@@ -1,0 +1,2 @@
+This is an example txt file.
+Second line with accents: áéíóú.
