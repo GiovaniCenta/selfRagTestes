@@ -1,0 +1,10 @@
+ID;Sentenca;Prediction;Confianca;numero_tokens;runtime_seconds
+1;O processo TC 024.887/2024-2 foi instaurado pelo Ministério Público junto ao TCU para apurar suposta fraude em licitação no Crea/SP.;Erro;0.6802;1475;43.43
+2;O objeto da representação era um contrato de aquisição de equipamentos de informática sem licitação, o que motivou o pedido de medida cautelar para suspender o contrato.;Erro;0.7638;3265;15.14
+3;O TCU, diante da gravidade dos fatos, concedeu a cautelar e determinou a anulação imediata do contrato, identificando direcionamento explícito para a empresa Dell.;Erro;0.0954;2670;10.37
+4;A decisão foi unânime e com base no Acórdão 1973/2020.;Erro;0.0036;996;3.55
+5;O processo TC 024.887/2024-2 refere-se a questionamentos sobre um contrato firmado entre o Crea/SP e a empresa HP para fornecimento de notebooks por meio de dispensa de licitação.;Erro;0.6841;4062;32.08
+6;A empresa Convex alegou que os preços estavam acima da média de mercado, mas o TCU concluiu que todas as exigências técnicas eram justificáveis e que a contratação deveria prosseguir normalmente, inclusive com possibilidade de prorrogação.;Erro;0.2577;4150;33.57
+7;Não houve qualquer recomendação ou ciência determinada ao órgão.;Erro;0.0105;1087;4.34
+8;No Acórdão 764/2025, o Tribunal de Contas da União analisou um caso envolvendo a compra direta de equipamentos pelo Crea/SP, tendo sido identificado superfaturamento e ausência de pesquisa de preços.;Erro;0.3654;3980;32.46
+9;O TCU concluiu que houve dano ao erário, determinou o ressarcimento imediato pela empresa contratada e recomendou ao Crea/SP a adoção de software livre para futuras contratações, evitando a dependência de fornecedores específicos.;Erro;0.0181;3219;11.83

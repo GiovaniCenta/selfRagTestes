@@ -106,31 +106,43 @@ def _format_validation_prompt(claim: str, context_chunks: List[str]) -> str:
     Returns:
         The formatted prompt string.
     """
-    context_str = "\n\n".join(f"Trecho {i+1}:\n{chunk}" for i, chunk in enumerate(context_chunks))
+    context_str = "\\n\\n".join(f"Trecho {i+1}:\\n{chunk}" for i, chunk in enumerate(context_chunks))
 
-    # Gemma instruct format uses <start_of_turn> / <end_of_turn>
+    user_message = f"""Você é um assistente de IA altamente preciso e literal, especializado em validar afirmações em documentos jurídicos do TCU. Sua tarefa é determinar se uma 'Alegação' é 'Correta' ou 'Incorreta' baseando-se *única, exclusiva e estritamente* nas informações contidas nos 'Trechos do Documento Original' fornecidos.
 
-    user_message = f"""Você é um assistente especialista em analisar documentos jurídicos do TCU. Sua tarefa é avaliar se uma alegação feita em um resumo é verdadeira ou falsa, baseando-se *estritamente* nos trechos fornecidos do documento original.
+**REGRAS ABSOLUTAS (Siga-as Implacavelmente):**
+1.  **NÃO USE CONHECIMENTO EXTERNO.** Sua análise deve ser 100% baseada nos trechos fornecidos.
+2.  **NÃO FAÇA INFERÊNCIAS OU SUPOSIÇÕES.** Se a informação não está explicitamente declarada nos trechos, ela não existe para esta tarefa.
+3.  **SEJA LITERAL.** Compare a alegação com os trechos palavra por palavra, significado por significado.
+4.  **PARA SER 'Correta',** TODAS as partes da alegação devem ser explicitamente confirmadas por um ou mais trechos. Se qualquer parte da alegação não for explicitamente confirmada, ela é 'Incorreta'.
+5.  **PARA SER 'Incorreta',** UMA OU MAIS das seguintes condições devem ser verdadeiras:
+    a.  Um ou mais trechos contradizem diretamente a alegação.
+    b.  Os trechos fornecidos NÃO CONTÊM informação suficiente para confirmar a alegação (mesmo que não a contradigam diretamente).
 
-**Instruções:**
-1. Analise a 'Alegação' abaixo.
-2. Verifique se a alegação pode ser confirmada ou refutada usando *apenas* as informações contidas nos 'Trechos do Documento Original'. Não use conhecimento externo.
-3. Responda *obrigatoriamente* no seguinte formato EXATO, começando com "Resultado:":
-   Resultado: [Correta/Incorreta]
-   Justificativa: [Explique brevemente o motivo com base nos trechos se for Incorreta, ou 'N/A' se for Correta]
-
-**Exemplo de Saída Esperada:**
-Resultado: Incorreta
-Justificativa: O trecho 2 indica que o teto foi aplicado imediatamente, contrariando a alegação.
+**PROCESSO DE ANÁLISE INTERNO (Use para guiar seu raciocínio, NÃO inclua no output final - apenas pense nesses passos):**
+    A. Leia a 'Alegação' cuidadosamente. Identifique cada fato ou afirmação individual nela contida.
+    B. Para CADA fato/afirmação na alegação:
+        i.  Examine TODOS os 'Trechos do Documento Original'.
+        ii. Procure por uma declaração explícita que CONFIRME este fato/afirmação.
+        iii.Procure por uma declaração explícita que CONTRADIGA este fato/afirmação.
+    C. Avaliação Final (baseada no processo interno):
+        i.  Se TODOS os fatos/afirmações da alegação foram explicitamente CONFIRMADOS pelos trechos E NENHUM foi contradito, a alegação é 'Correta'.
+        ii. Se QUALQUER fato/afirmação da alegação foi explicitamente CONTRADITO pelos trechos, a alegação é 'Incorreta'.
+        iii.Se QUALQUER fato/afirmação da alegação NÃO PODE SER CONFIRMADO (ou seja, a informação está AUSENTE nos trechos), a alegação é 'Incorreta'.
 
 **Trechos do Documento Original:**
 {context_str}
 
 **Alegação a ser validada:**
-{claim}"""
+{claim}
+
+**FORMATO DE SAÍDA OBRIGATÓRIO E FINAL (NÃO inclua NADA MAIS em sua resposta, apenas estas duas linhas):**
+Resultado: [Correta/Incorreta]
+Justificativa: [Se 'Correta': "A alegação é confirmada pelo(s) Trecho(s) X, Y, que afirmam [citação relevante ou paráfrase muito próxima]." OU Se 'Incorreta' por contradição: "A alegação é contradita pelo(s) Trecho(s) X, Y, que afirmam [citação relevante ou paráfrase]." OU Se 'Incorreta' por ausência de informação: "A informação necessária para confirmar '[parte específica da alegação]' não foi encontrada nos trechos fornecidos."
+]"""
 
     # Combine into final prompt format for Gemma
-    prompt = f"<start_of_turn>user\n{user_message.strip()}<end_of_turn>\n<start_of_turn>model\n"
+    prompt = f"<start_of_turn>user\\n{user_message.strip()}<end_of_turn>\\n<start_of_turn>model\\n"
 
     return prompt
 
@@ -138,7 +150,7 @@ Justificativa: O trecho 2 indica que o teto foi aplicado imediatamente, contrari
 def validate_claim_with_llm(
     query_claim: str,
     retrieved_chunks: Dict[str, Any],
-    max_new_tokens: int = 100, # Limit response length
+    max_new_tokens: int = 150, # Increased from 100
     temperature: float = 0.1, # Lower temperature for more deterministic output
 ) -> Optional[Dict[str, Any]]:
     """
@@ -213,7 +225,10 @@ def validate_claim_with_llm(
         }
 
         # Use regex to find Resultado, ignore markdown and case for Correta/Incorreta
-        match_resultado = re.search(r"Resultado:\s*\*?([Cc]orreta|[Ii]ncorreta)\*?", llm_response_text)
+        # Make regex more robust: handles optional bolding of "Resultado", more whitespace, case-insensitive "Resultado", multiline
+        match_resultado = re.search(r"^\s*\*?\s*Resultado\s*:\s*\*?\s*([Cc]orreta|[Ii]ncorreta)\*?", 
+                                    llm_response_text, 
+                                    re.IGNORECASE | re.MULTILINE)
 
         if match_resultado:
             # Normalize to capitalize first letter only (e.g., "Correta" or "Incorreta")

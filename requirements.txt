@@ -5,4 +5,5 @@ accelerate
 sentence-transformers
 chromadb
 pypdf2
-streamlit 
+streamlit
+nltk 

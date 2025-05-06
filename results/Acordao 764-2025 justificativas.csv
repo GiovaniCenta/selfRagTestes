@@ -1,0 +1,727 @@
+ID;Sentenca;Prediction;Justificativa;ContextoUtilizado
+1;O processo TC 024.887/2024-2 foi instaurado pelo Ministério Público junto ao TCU para apurar suposta fraude em licitação no Crea/SP.;Erro;"Formato inesperado (sem Resultado): **Resultado: Correta**
+
+**Justificativa:**
+
+* O processo TC 024.887/2024-2 foi instaurado pelo Ministério Público junto ao TCU para apurar suposta fraude em licitação no Crea/SP.
+* A alegação é consistente com os trechos do documento original, que especificam que o processo foi instaurado para apurar fraude em licitação.
+* A alegação é completa, com todas as informações necessárias para a análise sendo encontradas nos trechos fornecidos.";"1. Processo nº TC 024.887/2024-2 
+2. Grupo II – Classe de Assunto: VII – Representação 
+3. Representante: Sistemas Convex Locações de Produtos de Informática Ltda. (73.147.084/0001-64) 
+4. Unidade: Conselho Regional de Engenharia e Agronomia do Estado de São Paulo (Crea/SP) 
+5. Relator: Ministro Jorge Oliveira 
+6. Representante do Ministério Público: não atuou 
+7. Unidade Técnica: Unidade de Auditoria Especializada em Contratações (AudContratações) 
+8. Representação legal: Edson Gomes Morare Silva (365416/OAB-SP); Humberto Marques de Jesus 
+(182194/OAB-SP); Karina Amorim Sampaio Costa (23803/OAB-DF); Joyce de Carvalho Morachik 
+(63986/OAB-DF); e outros [SEP_CONTEXTO] TRIBUNAL DE CONTAS DA UNIÃO TC 024.887/2024-2 [SEP_CONTEXTO] TRIBUNAL DE CONTAS DA UNIÃO TC 024.887/2024-2 [SEP_CONTEXTO] TRIBUNAL DE CONTAS DA UNIÃO TC 024.887/2024-2 [SEP_CONTEXTO] “21.4. dar ciência ao Conselho Regional de Engenharia e Agronomia do Estado de São Paulo, com 
+fundamento no art. 9º, inciso I, da Resolução-TCU 315/2020, sobre as seguintes impropriedades/falhas, 
+identificadas no Pregão Eletrônico 7/2024, para que sejam adotadas medidas internas com vistas à 
+prevenção de outras ocorrências semelhantes: 
+a) restrição à competitividade e direcionamento do certame, especialmente em relação aos itens 2, 3, 6 e 8, 
+nos quais as especificações requeridas somente podem ser atendidas pelos equipamentos da fabricante 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637267."
+2;O objeto da representação era um contrato de aquisição de equipamentos de informática sem licitação, o que motivou o pedido de medida cautelar para suspender o contrato.;Erro;"Formato inesperado (sem Resultado): **Análise da Alegação**
+
+**1. Criação da Alegação:**
+A alegação é clara e completa, descrivendo claramente os elementos que compõem a alegação.
+
+**2. Confirmação das Informações:**
+A alegação confirma todas as informações principais contidas nos trechos fornecidos, exceto pelo nome do fabricante, que não é relevante para a análise da alegação.
+
+**3. Contradição com o Trecho 3:**
+O Trecho 3 afirma que o contrato foi direcionado para um único fabricante,Hewlett Packard, mas a alegação demonstra que o contrato foi dirigido para uma empresa diferente, HP.
+
+**4. Falta de Informação:**
+O Tre";"SUMÁRIO: REPRESENTAÇÃO COM PEDIDO DE MEDIDA 
+CAUTELAR. CREA/SP. PREGÃO PARA LOCAÇÃO DE 
+EQUIPAMENTOS DE INFORMÁTICA. INDÍCIOS DE 
+DIRECIONAMENTO DO CERTAME PARA DETERMINADO 
+FABRICANTE. OITIVA DA UNIDADE JURIDICIONADA. 
+NÃO APRESENTAÇÃO DE ELEMENTOS QUE PERMITAM 
+AFASTAR A IRREGULARIDADE APONTADA. CONTRATO 
+JÁ CELEBRADO E EM EXECUÇÃO. EVIDÊNCIAS DE TER 
+HAVIDO COMPETITIVIDADE E ECONOMICIDADE NA 
+CONTRATAÇÃO. AUSÊNCIA DOS PRESSUPOSTOS PARA 
+CONCESSÃO DA CAUTELAR. PROCEDÊNCIA PARCIAL. 
+DETERMINAÇÃO E CIÊNCIA. [SEP_CONTEXTO] Trata-se de representação, com pedido de medida cautelar, formulado por Sistemas 
+Convex Locações de Produtos de Informática Ltda. acerca de possíveis irregularidades ocorridas no 
+Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo Conselho Regional de Engenharia 
+e Agronomia do Estado de São Paulo (Crea/SP) para a locação de computadores e notebooks. 
+2. Reproduzo, a seguir, trechos da instrução elaborada pela Unidade de Auditoria 
+Especializada em Contratações (AudContratações), que analisou a matéria: [SEP_CONTEXTO] Em exame, representação, com pedido de medida cautelar, formulado por Sistemas 
+Convex Locações de Produtos de Informática Ltda. sobre possíveis irregularidades ocorridas no 
+Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo Conselho Regional de Engenharia 
+e Agronomia do Estado de São Paulo (Crea/SP) para a locação de computadores e notebooks. 
+2. Em síntese, a representante alegou que o certame foi direcionado para um único fabricante 
+(Hewlett Packard), uma vez que nenhuma outra máquina, de qualquer outro concorrente, conseguiria 
+atender, de forma completa, às exigências fixadas. 
+3. Verifico, preliminarmente, que o expediente encaminhado atende aos requisitos de 
+admissibilidade aplicáveis, podendo ser conhecido por esta Corte de Contas. 
+4. Quanto ao mérito, as informações reunidas nos autos demonstraram que as especificações 
+constantes do termo de referência continham uma série de requisitos técnicos inadequados, que não se 
+traduziam em critérios relevantes de performance ou sequer seriam pertinentes no caso de locação de 
+equipamentos, tais como exigência de frequência de operação de memória de 4800 mhz (mas não de 
+4400 mhz) ou quantidade de slots de memória disponíveis. Assim, o nível excessivo de detalhamento 
+das especificações indicava possível direcionamento para equipamentos de uma marca determinada. 
+5. A instrução inicial do processo, a cargo da Unidade de Auditoria Especializada em 
+Contratações (AudContratações), concluiu, em face da ausência de elementos essenciais ao 
+julgamento, pela necessidade de realização de oitiva prévia do Crea/SP, nos termos do art. 276, § 2º, 
+do Regimento Interno deste Tribunal, para que, no prazo de cinco dias úteis, a unidade jurisdicionada 
+se pronunciasse sobre as questões suscitadas e fornecesse informações adicionais. 
+6. Após o Crea/SP ter respondido à oitiva, a AudContratações analisou as justificativas 
+apresentadas, concluindo pela confirmação dos indícios de irregularidades, uma vez que o conselho 
+profissional não conseguiu comprovar que os equipamentos poderiam ser fornecidos por outros 
+fabricantes e restou comprovado o direcionamento de marca. 
+7. Quanto à execução contratual, o Crea/SP informou que o contrato já está em andamento, 
+com todos os equipamentos previstos instalados, e está sendo executado a contento. Adicionalmente, 
+aduziu que o preço contratado foi 40% do estimado inicialmente e que os valores obtidos se encontram 
+similares aos contidos em outros contratos da Administração Pública de mesmo objeto. 
+8. Assim, ponderando esses fatores e considerando que a licitação contou com ampla 
+participação de empresas e que nenhuma foi desclassificada por não aceitação da proposta, já que a 
+licitante vencedora ofertou o menor lance, a AudContratações acabou por concluir pela inexistência de 
+prejuízo à Administração e pela ausência de interesse público em suspender ou impugnar a 
+contratação. 
+9. Desse modo, sua instrução final contemplou apenas proposta de encaminhamento de 
+ciência ao Crea/SP acerca da impropriedade detectada, para que aprimore seus processos de 
+contratação, nos seguintes termos: [SEP_CONTEXTO] 9. Acórdão: 
+VISTOS, relatados e discutidos os presentes autos de representação, com pedido de medida 
+cautelar, formulado por Sistemas Convex Locações de Produtos de Informática Ltda. sobre possíveis 
+irregularidades ocorridas no Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo 
+Conselho Regional de Engenharia e Agronomia do Estado de São Paulo (Crea/SP) para a locação de 
+computadores e notebooks. 
+ACORDAM os ministros do Tribunal de Contas da União, reunidos em sessão do Plenário, 
+com fundamento nos arts. 43, inciso I, da Lei 8.443/1992, nos arts. 169, inciso V, 235, 237, inciso VII 
+e parágrafo único, do Regimento Interno-TCU, no art. 103, § 1º, da Resolução-TCU 259/2014, nos 
+arts. 4º, inciso I, e 9º, inciso I, da Resolução-TCU 315/2020 e ante as razões expostas pelo relator, em: 
+9.1. conhecer da representação, por atender os requisitos de admissibilidade, para, no 
+mérito, considerá-la parcialmente procedente; 
+9.2. indeferir o pedido de adoção de medida cautelar formulado pela representante, em face 
+da ausência dos pressupostos para sua concessão; 
+9.3. determinar ao Conselho Regional de Engenharia e Agronomia do Estado de São Paulo 
+que não prorrogue o contrato decorrente do Pregão Eletrônico para Registro de Preços 7/2024, nem 
+autorize a adesão de outras entidades aos seus termos, adotando, à época devida, as medidas cabíveis 
+para a realização de novo certame; 
+9.4. dar ciência ao Crea/SP sobre as seguintes impropriedades, identificadas no referido 
+certame, para que sejam adotadas medidas com vistas à prevenção de outras ocorrências semelhantes: 
+9.4.1 restrição à competitividade e direcionamento do certame, especialmente, em relação 
+aos itens 2, 3, 6 e 8, nos quais as especificações requeridas somente podem ser atendidas pelos 
+equipamentos da fabricante Hewlett Packard (HP), em afronta ao art. 9º, inciso I, alínea “a”, da Lei 
+14.133/2021 e ao princípio da competitividade; e 
+9.4.2. ausência, nos estudos técnicos preliminares da contratação, da identificação dos 
+diversos modelos existentes no mercado que pudessem atender completamente às especificações 
+exigidas e das justificativas para as exigências restritivas à competitividade, em afronta ao § 2º do art. 
+9º da Instrução Normativa-Seges/ME 58/2022 e à jurisprudência do TCU, a exemplo dos Acórdãos 
+214/2020 – Plenário e 1.973/2020 – Plenário; 
+9.5. comunicar esta decisão à representante e à unidade jurisdicionada; 
+9.6. arquivar os presentes autos. [SEP_CONTEXTO] “A representante alega, em suma, que (peça 1): 
+a) o certame foi direcionado para um único fabricante (Hewlett Packard, HP), uma vez que nenhuma outra 
+máquina, de qualquer outro concorrente, consegue atender de forma completa as exigências fixadas. 
+2. A instrução inicial (peça 17) concluiu pelo conhecimento da representação e pela necessidade de 
+realização de oitiva prévia e diligência, ao que anuiu o corpo diretivo da Unidade (peça 18) e o Ministro-
+Relator (peça 19). 
+3. Promovidas a oitiva prévia e diligência quanto às alegações do representante e demais questões 
+levantadas por esta unidade técnica, passa-se a analisar as respostas apresentadas, tópico a tópico, 
+conforme transcrição/contextualização a seguir. 
+4. Está afastado o pressuposto do perigo da demora em relação ao órgão gerenciador, uma vez que o 
+contrato já foi assinado e os serviços se encontram em execução. Porém, está caracterizado o perigo da 
+demora em relação às possíveis adesões. 
+5. Está configurado o pressuposto do perigo da demora reverso em razão da essencialidade dos serviços e 
+da inexistência de outros contratos vigentes para o mesmo objeto. 
+ANÁLISE QUANTO À PLAUSIBILIDADE JURÍDICA E QUANTO À NECESSIDADE DE ADOÇÃO DE 
+MEDIDA CAUTELAR: 
+Item ‘a’: restrição à competitividade e direcionamento do certame, especialmente em relação aos itens 2, 3, 
+6 e 8, nos quais as especificações requeridas somente podem ser atendidas pelos equipamentos da 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637265."
+3;O TCU, diante da gravidade dos fatos, concedeu a cautelar e determinou a anulação imediata do contrato, identificando direcionamento explícito para a empresa Dell.;Erro;"Formato inesperado (sem Resultado): **Resultado: Correta**
+
+**Justificativa:** A alegação é confirmada pelo Trecho 1, que afirma que o certame foi direcionado para um único fabricante,Hewlett Packard (HP), uma vez que nenhuma outra máquina, de qualquer outro concorrente, consegue atender de forma completa às especificações exigidas e das justificativas para as exigências restritivas à competitividade, conforme indicado no Trecho 1.";"Hewlett Packard (HP), em afronta ao art. 9º, inciso I, alínea ‘a’, da Lei 14.133/2021 e ao princípio da 
+competitividade; e 
+b) ausência, nos estudos técnicos preliminares da contratação, da identificação dos diversos modelos 
+existentes no mercado que pudessem atender completamente às especificações exigidas e das justificativas 
+para as exigências restritivas à competitividade, em afronta ao § 2º do art. 9º da Instrução Normativa-
+Seges/ME 58/2022 e à jurisprudência do TCU, a exemplo dos Acórdãos 214/2020 – Plenário, Relator: 
+Ministro Aroldo Cedraz, e 1.973/2020 – Plenário, Relator: Ministro Weder de Oliveira;” [SEP_CONTEXTO] Trata-se de representação, com pedido de medida cautelar, formulado por Sistemas 
+Convex Locações de Produtos de Informática Ltda. acerca de possíveis irregularidades ocorridas no 
+Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo Conselho Regional de Engenharia 
+e Agronomia do Estado de São Paulo (Crea/SP) para a locação de computadores e notebooks. 
+2. Reproduzo, a seguir, trechos da instrução elaborada pela Unidade de Auditoria 
+Especializada em Contratações (AudContratações), que analisou a matéria: [SEP_CONTEXTO] “A representante alega, em suma, que (peça 1): 
+a) o certame foi direcionado para um único fabricante (Hewlett Packard, HP), uma vez que nenhuma outra 
+máquina, de qualquer outro concorrente, consegue atender de forma completa as exigências fixadas. 
+2. A instrução inicial (peça 17) concluiu pelo conhecimento da representação e pela necessidade de 
+realização de oitiva prévia e diligência, ao que anuiu o corpo diretivo da Unidade (peça 18) e o Ministro-
+Relator (peça 19). 
+3. Promovidas a oitiva prévia e diligência quanto às alegações do representante e demais questões 
+levantadas por esta unidade técnica, passa-se a analisar as respostas apresentadas, tópico a tópico, 
+conforme transcrição/contextualização a seguir. 
+4. Está afastado o pressuposto do perigo da demora em relação ao órgão gerenciador, uma vez que o 
+contrato já foi assinado e os serviços se encontram em execução. Porém, está caracterizado o perigo da 
+demora em relação às possíveis adesões. 
+5. Está configurado o pressuposto do perigo da demora reverso em razão da essencialidade dos serviços e 
+da inexistência de outros contratos vigentes para o mesmo objeto. 
+ANÁLISE QUANTO À PLAUSIBILIDADE JURÍDICA E QUANTO À NECESSIDADE DE ADOÇÃO DE 
+MEDIDA CAUTELAR: 
+Item ‘a’: restrição à competitividade e direcionamento do certame, especialmente em relação aos itens 2, 3, 
+6 e 8, nos quais as especificações requeridas somente podem ser atendidas pelos equipamentos da 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637265. [SEP_CONTEXTO] 9. Acórdão: 
+VISTOS, relatados e discutidos os presentes autos de representação, com pedido de medida 
+cautelar, formulado por Sistemas Convex Locações de Produtos de Informática Ltda. sobre possíveis 
+irregularidades ocorridas no Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo 
+Conselho Regional de Engenharia e Agronomia do Estado de São Paulo (Crea/SP) para a locação de 
+computadores e notebooks. 
+ACORDAM os ministros do Tribunal de Contas da União, reunidos em sessão do Plenário, 
+com fundamento nos arts. 43, inciso I, da Lei 8.443/1992, nos arts. 169, inciso V, 235, 237, inciso VII 
+e parágrafo único, do Regimento Interno-TCU, no art. 103, § 1º, da Resolução-TCU 259/2014, nos 
+arts. 4º, inciso I, e 9º, inciso I, da Resolução-TCU 315/2020 e ante as razões expostas pelo relator, em: 
+9.1. conhecer da representação, por atender os requisitos de admissibilidade, para, no 
+mérito, considerá-la parcialmente procedente; 
+9.2. indeferir o pedido de adoção de medida cautelar formulado pela representante, em face 
+da ausência dos pressupostos para sua concessão; 
+9.3. determinar ao Conselho Regional de Engenharia e Agronomia do Estado de São Paulo 
+que não prorrogue o contrato decorrente do Pregão Eletrônico para Registro de Preços 7/2024, nem 
+autorize a adesão de outras entidades aos seus termos, adotando, à época devida, as medidas cabíveis 
+para a realização de novo certame; 
+9.4. dar ciência ao Crea/SP sobre as seguintes impropriedades, identificadas no referido 
+certame, para que sejam adotadas medidas com vistas à prevenção de outras ocorrências semelhantes: 
+9.4.1 restrição à competitividade e direcionamento do certame, especialmente, em relação 
+aos itens 2, 3, 6 e 8, nos quais as especificações requeridas somente podem ser atendidas pelos 
+equipamentos da fabricante Hewlett Packard (HP), em afronta ao art. 9º, inciso I, alínea “a”, da Lei 
+14.133/2021 e ao princípio da competitividade; e 
+9.4.2. ausência, nos estudos técnicos preliminares da contratação, da identificação dos 
+diversos modelos existentes no mercado que pudessem atender completamente às especificações 
+exigidas e das justificativas para as exigências restritivas à competitividade, em afronta ao § 2º do art. 
+9º da Instrução Normativa-Seges/ME 58/2022 e à jurisprudência do TCU, a exemplo dos Acórdãos 
+214/2020 – Plenário e 1.973/2020 – Plenário; 
+9.5. comunicar esta decisão à representante e à unidade jurisdicionada; 
+9.6. arquivar os presentes autos. [SEP_CONTEXTO] “21.4. dar ciência ao Conselho Regional de Engenharia e Agronomia do Estado de São Paulo, com 
+fundamento no art. 9º, inciso I, da Resolução-TCU 315/2020, sobre as seguintes impropriedades/falhas, 
+identificadas no Pregão Eletrônico 7/2024, para que sejam adotadas medidas internas com vistas à 
+prevenção de outras ocorrências semelhantes: 
+a) restrição à competitividade e direcionamento do certame, especialmente em relação aos itens 2, 3, 6 e 8, 
+nos quais as especificações requeridas somente podem ser atendidas pelos equipamentos da fabricante 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637267."
+4;A decisão foi unânime e com base no Acórdão 1973/2020.;Erro;"Formato inesperado (sem Resultado): **Resultado: Correta**
+**Justificativa:** A alegação está correta, pois todas as partes da alegação são explicitamente confirmadas pelos trechos do documento original.";ACÓRDÃO Nº 764/2025 – TCU – Plenário [SEP_CONTEXTO] TRIBUNAL DE CONTAS DA UNIÃO TC 024.887/2024-2 [SEP_CONTEXTO] TRIBUNAL DE CONTAS DA UNIÃO TC 024.887/2024-2 [SEP_CONTEXTO] TRIBUNAL DE CONTAS DA UNIÃO TC 024.887/2024-2 [SEP_CONTEXTO] TRIBUNAL DE CONTAS DA UNIÃO TC 024.887/2024-2
+5;O processo TC 024.887/2024-2 refere-se a questionamentos sobre um contrato firmado entre o Crea/SP e a empresa HP para fornecimento de notebooks por meio de dispensa de licitação.;Erro;"Formato inesperado (sem Resultado): **Resultado: Correta**
+
+**Justificativa:**
+
+* O processo TC 024.887/2024-2 refere-se ao tema em questão, questionamentos sobre um contrato firmado entre o Crea/SP e a empresa HP para fornecimento de notebooks por meio de dispensa de licitação.
+* O Trecho 4, que apresenta as informações sobre a análise da Unidade Jurisdicionada, confirma que os estudos técnicos preliminares e a pesquisa de preços foram realizadas e que a Unidade jurisdicionada demonstra que a opção escolhida pelo Crea/SP correspondia às necessidades do contrato.
+* O Trecho 5, que apresenta a análise da cotação de preços, confirma que";"1. Processo nº TC 024.887/2024-2 
+2. Grupo II – Classe de Assunto: VII – Representação 
+3. Representante: Sistemas Convex Locações de Produtos de Informática Ltda. (73.147.084/0001-64) 
+4. Unidade: Conselho Regional de Engenharia e Agronomia do Estado de São Paulo (Crea/SP) 
+5. Relator: Ministro Jorge Oliveira 
+6. Representante do Ministério Público: não atuou 
+7. Unidade Técnica: Unidade de Auditoria Especializada em Contratações (AudContratações) 
+8. Representação legal: Edson Gomes Morare Silva (365416/OAB-SP); Humberto Marques de Jesus 
+(182194/OAB-SP); Karina Amorim Sampaio Costa (23803/OAB-DF); Joyce de Carvalho Morachik 
+(63986/OAB-DF); e outros [SEP_CONTEXTO] Hewlett Packard (HP), em afronta ao art. 9º, inciso I, alínea ‘a’, da Lei 14.133/2021 e ao princípio da 
+competitividade; e 
+b) ausência, nos estudos técnicos preliminares da contratação, da identificação dos diversos modelos 
+existentes no mercado que pudessem atender completamente às especificações exigidas e das justificativas 
+para as exigências restritivas à competitividade, em afronta ao § 2º do art. 9º da Instrução Normativa-
+Seges/ME 58/2022 e à jurisprudência do TCU, a exemplo dos Acórdãos 214/2020 – Plenário, Relator: 
+Ministro Aroldo Cedraz, e 1.973/2020 – Plenário, Relator: Ministro Weder de Oliveira;” [SEP_CONTEXTO] Trata-se de representação, com pedido de medida cautelar, formulado por Sistemas 
+Convex Locações de Produtos de Informática Ltda. acerca de possíveis irregularidades ocorridas no 
+Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo Conselho Regional de Engenharia 
+e Agronomia do Estado de São Paulo (Crea/SP) para a locação de computadores e notebooks. 
+2. Reproduzo, a seguir, trechos da instrução elaborada pela Unidade de Auditoria 
+Especializada em Contratações (AudContratações), que analisou a matéria: [SEP_CONTEXTO] fabricante Hewlett Packard (HP), em afronta ao art. 9º, inciso I, alínea ‘a’, da Lei 14.133/2021 e ao 
+princípio da competitividade;  
+Manifestação da Unidade Jurisdicionada (peça 29, pp. 8-52): 
+a) a equipe de planejamento, em sua fase inicial, elaborou os Estudos Técnicos Preliminares, propondo 
+especificações para os equipamentos a serem adquiridos. Esses estudos basearam-se em dados disponíveis à 
+época e refletiam, em tese, as necessidades do Crea/SP naquele momento; 
+b) embora as especificações propostas refletissem as necessidades identificadas no momento de sua 
+elaboração, elas não acompanhavam as evoluções tecnológicas disponíveis no mercado, podendo 
+comprometer a eficiência, a durabilidade e a capacidade operacional dos equipamentos ao longo do tempo. 
+Com base nessa constatação, a equipe técnica deliberou pela atualização das especificações, buscando 
+alinhar os requisitos do edital às tecnologias mais modernas e adequadas ao mercado; 
+c) mas, como se pode perceber, os preços apresentados anteriormente foram praticamente iguais aos 
+valores informados após as alterações. Esse fato chama atenção para uma questão importante: é impossível 
+que equipamentos com especificações ultrapassadas, menos potentes e tecnologicamente defasadas, 
+apresentem o mesmo custo de máquinas que incorporam avanços significativos, como os descritos nas 
+modificações realizadas; 
+d) a manutenção de preços praticamente idênticos, mesmo com o acréscimo de tecnologias avançadas, 
+reforça a importância da atuação criteriosa da equipe de planejamento. Caso as especificações técnicas 
+originais, mais limitadas e obsoletas, tivessem sido mantidas, o Crea/SP correria o risco de adquirir 
+equipamentos inferiores pelo mesmo custo de máquinas significativamente superiores. Isso representaria um 
+claro prejuízo ao interesse público e um uso ineficiente dos recursos institucionais. No entanto, a equipe de 
+planejamento, atenta a essas peculiaridades, desempenhou seu trabalho de forma exemplar, assegurando 
+que as decisões fossem tomadas com precisão e plenamente alinhadas às necessidades institucionais e ao 
+princípio de eficiência; 
+e) a disponibilidade no mercado de diversos modelos aptos a cumprir as exigências é constatada não apenas 
+pela ampla participação de empresas no processo licitatório, mas também pelas cotações recebidas durante 
+a etapa de levantamento de preços estimados, tendo em vista que a maioria das empresas que enviaram seus 
+preços para a composição da estimativa de preços não possui qualquer vínculo ou parceria formal com a 
+empresa ‘HP’; 
+f) as empresas que receberam o ‘Termo de Referência’ elaboraram suas estimativas de preços sem 
+apresentar quaisquer objeções às especificações estabelecidas. Assim, caso houvesse direcionamento para 
+equipamentos de uma marca específica, como a ‘HP’, empresas representando outras marcas não teriam 
+condições de fornecer estimativas, uma vez que seus equipamentos não atenderiam aos requisitos definidos; 
+g) é relevante destacar que nenhum fornecedor em potencial, com exceção da representante, apresentou 
+questionamentos ou apontou impedimentos que pudessem configurar obstáculos à sua participação; 
+h) a participação de diversas empresas potenciais, sem qualquer vínculo ou parceria com a empresa HP, 
+evidencia a inexistência de qualquer indício de direcionamento na licitação. Nesse sentido, é relevante notar 
+que, entre as empresas que participaram do certame, duas delas não possuem parceria com a marca HP, o 
+que reforça a ausência de direcionamento; 
+i) caso houvesse a intenção de direcionar o certame para um fornecedor específico, dificilmente haveria 
+uma postura aberta à análise dos argumentos da impugnante e à realização de alterações no edital, como 
+foi feito. A flexibilização de critérios e a busca por um maior número de fornecedores aptos a participar do 
+processo reforçam o compromisso do Crea/SP com os princípios da isonomia, legalidade e moralidade 
+administrativa, conforme ficou claramente demonstrado ao longo do certame; 
+j) a postura adotada pelo Crea/SP em responder prontamente às solicitações e ajustar o edital, quando 
+cabível, como já mencionado, evidencia a ausência de qualquer intenção de direcionamento. Caso houvesse 
+tal intenção, seria improvável que a autarquia se empenhasse em ampliar a participação de empresas no 
+certame, garantindo que diversas marcas e modelos fossem compatíveis com as exigências técnicas; 
+k) o Crea/SP não apenas assegurou a possibilidade de participação de diferentes marcas e fabricantes, mas 
+também analisou tecnicamente as configurações oferecidas pelos licitantes. Ao considerar as possibilidades 
+de customização e compatibilidade tecnológica, o Conselho garantiu que especificações técnicas de marcas 
+amplamente disponíveis no mercado fossem plenamente atendidas, descartando qualquer hipótese de 
+direcionamento; e 
+l) é importante destacar que o Tribunal de Contas da União já havia realizado uma análise prévia sobre a 
+presente licitação. Na ocasião, o TCU ressaltou que o Conselho conduziu o processo com ampla análise das 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637265. [SEP_CONTEXTO] alternativas existentes para atender à necessidade que deu origem ao objeto da licitação, conforme o 
+Acórdão 1.627/2024 – Plenário. 
+Análise:  
+6. De fato, as cotações recebidas na fase de orçamentação da contratação, especialmente de empresas que 
+trabalham com equipamentos diversos da HP, são um indicativo da existência de outros equipamentos que 
+atenderiam às especificações do objeto. 
+7. Da mesma forma, a participação no certame de empresas representantes de outros fabricantes também é 
+indício da possibilidade de atendimento dos requisitos por outros fabricantes. Porém, também haveria a 
+possibilidade de que as empresas participassem da licitação com equipamentos, que, ao fim, não seriam 
+aprovados por não atenderem ao exigido. No caso, isso não ocorreu, pois não houve empresas 
+desclassificadas por não aceitação da proposta, já que a empresa vencedora ofertou o menor lance. 
+8. Apesar das razoáveis alegações da Unidade Jurisdicionada, não houve, em relação aos citados itens 2, 3, 
+6 e 8, qualquer argumentação ou comprovação específica de que tais equipamentos poderiam ser fornecidos 
+por outros fabricantes. Na instrução anterior (peça 17, pp. 4-5) foram rebatidos os argumentos do pregoeiro 
+que afirmavam que haveria outros fabricantes aptos para estes itens, restando demonstrado que somente a 
+HP conseguiria atender a todas as especificações exigidas para estes equipamentos. 
+9. Porém, deve se levar em conta, conforme informações prestadas pela Unidade Jurisdicionada, que o 
+contrato já está em andamento, com todos os equipamentos previstos instalados, e está sendo executado a 
+contento. Ainda, há que se considerar, principalmente, a efetiva vantajosidade da contratação, 
+consubstanciada na grande economia obtida no certame, da ordem de mais de 40% em relação ao estimado, 
+e que os preços obtidos se encontram similares aos contidos em outros contratos da Administração Pública, 
+conforme a Unidade Jurisdicionada demonstrou em sua resposta (peça 29, pp. 58-61). 
+10. Assim, não se visualiza interesse público na suspensão da contratação ou das possíveis adesões, sendo 
+suficiente a expedição de ciência à Unidade Jurisdicionada para evitar a repetição da irregularidade em 
+certames posteriores. 
+Item ‘b’: ausência, nos estudos técnicos preliminares da contratação, da identificação dos diversos modelos 
+existentes no mercado que possam atender completamente às especificações exigidas e das justificativas 
+para as exigências restritivas à competitividade, em afronta ao § 2º do art. 9º da Instrução Normativa-
+Seges/ME 58/2022 e à jurisprudência do TCU, a exemplo do Acórdão 214/2020 – Plenário, Relator: 
+Ministro Aroldo Cedraz;  
+Manifestação da Unidade Jurisdicionada (peça 29, pp. 4-8): 
+a) dentre os cenários de possível solução à necessidade administrativa, o estudo identificou que a locação 
+de equipamentos tecnológicos se apresenta como a solução mais adequada para atender às necessidades do 
+Conselho, ao transferir ao fornecedor a responsabilidade pela atualização e manutenção dos equipamentos. 
+Essa abordagem elimina a necessidade de aquisição de bens patrimoniais e os custos associados à gestão de 
+bens obsoletos, como armazenamento, manutenção de estoques e desfazimento de ativos inservíveis, além de 
+assegurar a disponibilidade contínua de equipamentos atualizados e funcionais; 
+b) no que tange à cotação de preços, o levantamento foi conduzido em conformidade com a Instrução 
+Normativa 65/2021, que estabelece os critérios e procedimentos para a formação de preços no âmbito das 
+contratações públicas; 
+c) por último, é relevante destacar que o referido Estudo Técnico foi considerado satisfatório por este 
+Tribunal de Contas, atendendo aos requisitos estabelecidos, com justificativa adequada e fundamentação 
+consistente, conforme registrado no Acórdão 1.627/2024 – Plenário; e 
+d) conclui-se, portanto, que os estudos técnicos preliminares e a pesquisa de preços realizados pelo Crea/SP 
+forneceram os subsídios necessários para a fundamentação da contratação de serviços de locação de 
+equipamentos tecnológicos. 
+Análise:  
+11. O mencionado Acórdão 1.627/2024 – Plenário, Relator: Ministro Antônio Anastasia, ao contrário do 
+afirmado pela Unidade Jurisdicionada, não aprovou o estudo técnico preliminar da contratação, mas 
+apenas afirmou, especificamente em relação à escolha do modelo de contratação, que o documento 
+demonstrou de forma adequada a opção pelo outsourcing de equipamentos. A decisão, portanto, não tratou 
+da restrição à competitividade, tema que está sendo abordado neste processo. 
+12. Tampouco se questiona aqui a cotação de preços empreendida pela Unidade Jurisdicionada. O que está 
+sendo questionado é a ausência, nos estudos técnicos preliminares da contratação, da identificação dos 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637265."
+6;A empresa Convex alegou que os preços estavam acima da média de mercado, mas o TCU concluiu que todas as exigências técnicas eram justificáveis e que a contratação deveria prosseguir normalmente, inclusive com possibilidade de prorrogação.;Erro;"Formato inesperado (sem Resultado): **Trecho 3:**
+
+* A representante alegou que o certame foi direcionado para um único fabricante (Hewlett Packard), uma vez que nenhuma outra máquina, de qualquer outro concorrente, conseguiria atender, de forma completa, às exigências fixadas.
+
+**Trecho 4:**
+
+* Quanto ao mérito, as informações reunidas nos autos demonstraram que os requisitos constantes do termo de referência continham uma série de requisitos técnicos inadequados, que não se traduziam em critérios relevantes de performance ou sequer seriam pertinentes no caso de locação de equipamentos, tais como exigência de frequência de operação de memória de 4800 mhz (mas não de 4400";"diversos modelos existentes no mercado que possam atender completamente às especificações exigidas, o 
+que não restou justificado. 
+13. A jurisprudência do TCU é firme no sentido de que o órgão deve fundamentar adequadamente, nos 
+estudos técnicos preliminares, a necessidade de especificações com potencial de restringir o caráter 
+competitivo da licitação, demonstrando a sua essencialidade para atender as necessidades do órgão ou da 
+entidade contratante, a exemplo do Acórdão 1.973/2020 – Plenário, Relator: Ministro Weder de Oliveira. 
+14. Assim, propõe-se a também a expedição de ciência à Unidade Jurisdicionada quanto à irregularidade 
+em questão. 
+ANÁLISE DAS DILIGÊNCIAS: 
+Item ‘a.1’: informe o estágio atual da contratação e a previsão para a realização dos próximos atos;  
+Manifestação da Unidade Jurisdicionada (peça 29, pp. 63-64): 
+a) a licitação foi concluída com a homologação do certame em 16/8/2024, e o contrato foi firmado em 
+12/9/2024 com a empresa vencedora, Simpress Comércio Locação e Serviços Ltda., pelo valor mensal de R$ 
+496.293,10 e com prazo de vigência de 36 meses, prorrogáveis conforme a legislação vigente. 
+Item ‘a.2’: caso o contrato já tenha sido celebrado, informe se já foi iniciada a execução dos serviços;  
+Manifestação da Unidade Jurisdicionada (peça 29, p. 64): 
+a) a empresa já implantou 100% do parque tecnológico previsto, demonstrando de forma clara a eficiência 
+e a relevância dessa contratação para garantir a continuidade das atividades essenciais. 
+Item ‘a.3’: informe se há, para o mesmo objeto do certame em análise, contrato ou ata de registro de preços 
+com razoável vigência ou, no caso de contrato, que admita prorrogação, com possibilidade de atender às 
+necessidades dos órgãos, esclarecendo, em caso afirmativo, se as condições dessa contratação seriam 
+melhores (menor preço e atendimento satisfatório) que o que se está em vias de ser celebrado, bem como o 
+prazo-limite de cobertura em caso de adoção dessa solução;  
+Manifestação da Unidade Jurisdicionada (peça 29, p. 64): 
+a) não há, para o mesmo objeto, contrato vigente ou ata de registro de preços com prazo de vigência ou 
+condições que atendam às necessidades do Conselho, tampouco contratos que admitam prorrogação em 
+condições satisfatórias ou com vantagens econômicas; e 
+b) dessa forma, não existe alternativa contratual que apresente melhor preço ou atendimento mais eficaz em 
+comparação com o contrato atualmente celebrado. 
+Item ‘a.4’: informe se há decisão judicial ou administrativa, sem especificação de prazo, determinando a 
+suspensão do andamento do certame ora em análise, encaminhando, em caso afirmativo, cópia do 
+respectivo documento;  
+Manifestação da Unidade Jurisdicionada (peça 29, p. 64): 
+a) não há registro de decisões judiciais ou administrativas que determinem a suspensão do certame. 
+Item ‘a.5’: informe se a contratação do serviço objeto do certame ora em análise é essencial e premente 
+para as atividades da UJ, indicando, em caso afirmativo, o impacto de eventual deliberação do TCU que 
+venha a determinar a suspensão dos atos relativos à mencionada licitação, remetendo a documentação 
+comprobatória das alegações;  
+Manifestação da Unidade Jurisdicionada (peça 29, p. 64): 
+a) essa contratação é de fundamental importância para o pleno funcionamento do Crea/SP, pois os 
+equipamentos contratados são utilizados por todos os servidores da autarquia em suas atividades diárias, 
+assegurando o desempenho eficaz das demandas administrativas e operacionais; 
+b) além disso, os serviços contratados não se limitam à simples disponibilização de equipamentos, 
+abrangendo também monitoramento contínuo e manutenção técnica indispensáveis para o funcionamento 
+adequado das operações do Conselho; e 
+c) a ausência desses equipamentos tornaria absolutamente inviável o funcionamento do Crea/SP, resultando 
+na paralisação completa das atividades de fiscalização, atendimento à sociedade e suporte às categorias 
+profissionais regulamentadas, ou seja, de todas as funções desempenhadas pela autarquia. 
+Item ‘b’: informe se há possibilidade e intenção de suspender, até a apreciação final da matéria tratada 
+nestes autos, os atos relativos certame ora em análise, objetivando a análise, por parte da UJ, das questões 
+tratadas nesta representação;  
+Manifestação da Unidade Jurisdicionada (peça 29, p. 65): 
+a) não é possível suspender os atos relativos ao certame em análise até a apreciação final da matéria, pois o 
+objeto contratado é essencial para o funcionamento da entidade. Tal suspensão inviabilizaria as atividades 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637265. [SEP_CONTEXTO] Trata-se de representação, com pedido de medida cautelar, formulado por Sistemas 
+Convex Locações de Produtos de Informática Ltda. acerca de possíveis irregularidades ocorridas no 
+Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo Conselho Regional de Engenharia 
+e Agronomia do Estado de São Paulo (Crea/SP) para a locação de computadores e notebooks. 
+2. Reproduzo, a seguir, trechos da instrução elaborada pela Unidade de Auditoria 
+Especializada em Contratações (AudContratações), que analisou a matéria: [SEP_CONTEXTO] 9. Acórdão: 
+VISTOS, relatados e discutidos os presentes autos de representação, com pedido de medida 
+cautelar, formulado por Sistemas Convex Locações de Produtos de Informática Ltda. sobre possíveis 
+irregularidades ocorridas no Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo 
+Conselho Regional de Engenharia e Agronomia do Estado de São Paulo (Crea/SP) para a locação de 
+computadores e notebooks. 
+ACORDAM os ministros do Tribunal de Contas da União, reunidos em sessão do Plenário, 
+com fundamento nos arts. 43, inciso I, da Lei 8.443/1992, nos arts. 169, inciso V, 235, 237, inciso VII 
+e parágrafo único, do Regimento Interno-TCU, no art. 103, § 1º, da Resolução-TCU 259/2014, nos 
+arts. 4º, inciso I, e 9º, inciso I, da Resolução-TCU 315/2020 e ante as razões expostas pelo relator, em: 
+9.1. conhecer da representação, por atender os requisitos de admissibilidade, para, no 
+mérito, considerá-la parcialmente procedente; 
+9.2. indeferir o pedido de adoção de medida cautelar formulado pela representante, em face 
+da ausência dos pressupostos para sua concessão; 
+9.3. determinar ao Conselho Regional de Engenharia e Agronomia do Estado de São Paulo 
+que não prorrogue o contrato decorrente do Pregão Eletrônico para Registro de Preços 7/2024, nem 
+autorize a adesão de outras entidades aos seus termos, adotando, à época devida, as medidas cabíveis 
+para a realização de novo certame; 
+9.4. dar ciência ao Crea/SP sobre as seguintes impropriedades, identificadas no referido 
+certame, para que sejam adotadas medidas com vistas à prevenção de outras ocorrências semelhantes: 
+9.4.1 restrição à competitividade e direcionamento do certame, especialmente, em relação 
+aos itens 2, 3, 6 e 8, nos quais as especificações requeridas somente podem ser atendidas pelos 
+equipamentos da fabricante Hewlett Packard (HP), em afronta ao art. 9º, inciso I, alínea “a”, da Lei 
+14.133/2021 e ao princípio da competitividade; e 
+9.4.2. ausência, nos estudos técnicos preliminares da contratação, da identificação dos 
+diversos modelos existentes no mercado que pudessem atender completamente às especificações 
+exigidas e das justificativas para as exigências restritivas à competitividade, em afronta ao § 2º do art. 
+9º da Instrução Normativa-Seges/ME 58/2022 e à jurisprudência do TCU, a exemplo dos Acórdãos 
+214/2020 – Plenário e 1.973/2020 – Plenário; 
+9.5. comunicar esta decisão à representante e à unidade jurisdicionada; 
+9.6. arquivar os presentes autos. [SEP_CONTEXTO] 1. Processo nº TC 024.887/2024-2 
+2. Grupo II – Classe de Assunto: VII – Representação 
+3. Representante: Sistemas Convex Locações de Produtos de Informática Ltda. (73.147.084/0001-64) 
+4. Unidade: Conselho Regional de Engenharia e Agronomia do Estado de São Paulo (Crea/SP) 
+5. Relator: Ministro Jorge Oliveira 
+6. Representante do Ministério Público: não atuou 
+7. Unidade Técnica: Unidade de Auditoria Especializada em Contratações (AudContratações) 
+8. Representação legal: Edson Gomes Morare Silva (365416/OAB-SP); Humberto Marques de Jesus 
+(182194/OAB-SP); Karina Amorim Sampaio Costa (23803/OAB-DF); Joyce de Carvalho Morachik 
+(63986/OAB-DF); e outros [SEP_CONTEXTO] Em exame, representação, com pedido de medida cautelar, formulado por Sistemas 
+Convex Locações de Produtos de Informática Ltda. sobre possíveis irregularidades ocorridas no 
+Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo Conselho Regional de Engenharia 
+e Agronomia do Estado de São Paulo (Crea/SP) para a locação de computadores e notebooks. 
+2. Em síntese, a representante alegou que o certame foi direcionado para um único fabricante 
+(Hewlett Packard), uma vez que nenhuma outra máquina, de qualquer outro concorrente, conseguiria 
+atender, de forma completa, às exigências fixadas. 
+3. Verifico, preliminarmente, que o expediente encaminhado atende aos requisitos de 
+admissibilidade aplicáveis, podendo ser conhecido por esta Corte de Contas. 
+4. Quanto ao mérito, as informações reunidas nos autos demonstraram que as especificações 
+constantes do termo de referência continham uma série de requisitos técnicos inadequados, que não se 
+traduziam em critérios relevantes de performance ou sequer seriam pertinentes no caso de locação de 
+equipamentos, tais como exigência de frequência de operação de memória de 4800 mhz (mas não de 
+4400 mhz) ou quantidade de slots de memória disponíveis. Assim, o nível excessivo de detalhamento 
+das especificações indicava possível direcionamento para equipamentos de uma marca determinada. 
+5. A instrução inicial do processo, a cargo da Unidade de Auditoria Especializada em 
+Contratações (AudContratações), concluiu, em face da ausência de elementos essenciais ao 
+julgamento, pela necessidade de realização de oitiva prévia do Crea/SP, nos termos do art. 276, § 2º, 
+do Regimento Interno deste Tribunal, para que, no prazo de cinco dias úteis, a unidade jurisdicionada 
+se pronunciasse sobre as questões suscitadas e fornecesse informações adicionais. 
+6. Após o Crea/SP ter respondido à oitiva, a AudContratações analisou as justificativas 
+apresentadas, concluindo pela confirmação dos indícios de irregularidades, uma vez que o conselho 
+profissional não conseguiu comprovar que os equipamentos poderiam ser fornecidos por outros 
+fabricantes e restou comprovado o direcionamento de marca. 
+7. Quanto à execução contratual, o Crea/SP informou que o contrato já está em andamento, 
+com todos os equipamentos previstos instalados, e está sendo executado a contento. Adicionalmente, 
+aduziu que o preço contratado foi 40% do estimado inicialmente e que os valores obtidos se encontram 
+similares aos contidos em outros contratos da Administração Pública de mesmo objeto. 
+8. Assim, ponderando esses fatores e considerando que a licitação contou com ampla 
+participação de empresas e que nenhuma foi desclassificada por não aceitação da proposta, já que a 
+licitante vencedora ofertou o menor lance, a AudContratações acabou por concluir pela inexistência de 
+prejuízo à Administração e pela ausência de interesse público em suspender ou impugnar a 
+contratação. 
+9. Desse modo, sua instrução final contemplou apenas proposta de encaminhamento de 
+ciência ao Crea/SP acerca da impropriedade detectada, para que aprimore seus processos de 
+contratação, nos seguintes termos:"
+7;Não houve qualquer recomendação ou ciência determinada ao órgão.;Erro;"Formato inesperado (sem Resultado): **Resultado: Correta**
+
+Justificativa: A alegação é completa e específica, com todas as informações necessárias para ser considerada correta. O processo de análise interna foi realizado de forma precisa e objetiva, e a justificativa fornecida é clara e completa.";"RELATÓRIO [SEP_CONTEXTO] É o relatório. 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637265. [SEP_CONTEXTO] GRUPO II – CLASSE VII – Plenário 
+TC 024.887/2024-2 
+Natureza: Representação 
+Unidade: Conselho Regional de Engenharia e Agronomia do 
+Estado de São Paulo (Crea/SP) 
+Representante: Sistemas Convex Locações de Produtos de 
+Informática Ltda. [SEP_CONTEXTO] JORGE OLIVEIRA 
+Relator 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637267. [SEP_CONTEXTO] (Assinado Eletronicamente) 
+WALTON ALENCAR RODRIGUES (Assinado Eletronicamente) 
+JORGE OLIVEIRA 
+na Presidência Relator"
+8;No Acórdão 764/2025, o Tribunal de Contas da União analisou um caso envolvendo a compra direta de equipamentos pelo Crea/SP, tendo sido identificado superfaturamento e ausência de pesquisa de preços.;Erro;"Formato inesperado (sem Resultado): **Resultado: Correta**
+
+**Justificativa:**
+
+* O Trecho 1 demonstra que a representante alegou que o certame foi direcionado para um único fabricante (Hewlett Packard), conforme previsto no artigo 9º, inciso I, alínea “a” da Lei 14.133/2021.
+* O Trecho 2 demonstra que as especificações propostas refletem as necessidades do Crea/SP naquele momento, mas não acompanharam as evoluções tecnológicas disponíveis no mercado, podendo comprometer a eficiência, a durabilidade e a capacidade operacional dos equipamentos ao longo do tempo.
+* O Trecho 3 demonstra que a representante não apresentou nenhum argumento para";"Em exame, representação, com pedido de medida cautelar, formulado por Sistemas 
+Convex Locações de Produtos de Informática Ltda. sobre possíveis irregularidades ocorridas no 
+Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo Conselho Regional de Engenharia 
+e Agronomia do Estado de São Paulo (Crea/SP) para a locação de computadores e notebooks. 
+2. Em síntese, a representante alegou que o certame foi direcionado para um único fabricante 
+(Hewlett Packard), uma vez que nenhuma outra máquina, de qualquer outro concorrente, conseguiria 
+atender, de forma completa, às exigências fixadas. 
+3. Verifico, preliminarmente, que o expediente encaminhado atende aos requisitos de 
+admissibilidade aplicáveis, podendo ser conhecido por esta Corte de Contas. 
+4. Quanto ao mérito, as informações reunidas nos autos demonstraram que as especificações 
+constantes do termo de referência continham uma série de requisitos técnicos inadequados, que não se 
+traduziam em critérios relevantes de performance ou sequer seriam pertinentes no caso de locação de 
+equipamentos, tais como exigência de frequência de operação de memória de 4800 mhz (mas não de 
+4400 mhz) ou quantidade de slots de memória disponíveis. Assim, o nível excessivo de detalhamento 
+das especificações indicava possível direcionamento para equipamentos de uma marca determinada. 
+5. A instrução inicial do processo, a cargo da Unidade de Auditoria Especializada em 
+Contratações (AudContratações), concluiu, em face da ausência de elementos essenciais ao 
+julgamento, pela necessidade de realização de oitiva prévia do Crea/SP, nos termos do art. 276, § 2º, 
+do Regimento Interno deste Tribunal, para que, no prazo de cinco dias úteis, a unidade jurisdicionada 
+se pronunciasse sobre as questões suscitadas e fornecesse informações adicionais. 
+6. Após o Crea/SP ter respondido à oitiva, a AudContratações analisou as justificativas 
+apresentadas, concluindo pela confirmação dos indícios de irregularidades, uma vez que o conselho 
+profissional não conseguiu comprovar que os equipamentos poderiam ser fornecidos por outros 
+fabricantes e restou comprovado o direcionamento de marca. 
+7. Quanto à execução contratual, o Crea/SP informou que o contrato já está em andamento, 
+com todos os equipamentos previstos instalados, e está sendo executado a contento. Adicionalmente, 
+aduziu que o preço contratado foi 40% do estimado inicialmente e que os valores obtidos se encontram 
+similares aos contidos em outros contratos da Administração Pública de mesmo objeto. 
+8. Assim, ponderando esses fatores e considerando que a licitação contou com ampla 
+participação de empresas e que nenhuma foi desclassificada por não aceitação da proposta, já que a 
+licitante vencedora ofertou o menor lance, a AudContratações acabou por concluir pela inexistência de 
+prejuízo à Administração e pela ausência de interesse público em suspender ou impugnar a 
+contratação. 
+9. Desse modo, sua instrução final contemplou apenas proposta de encaminhamento de 
+ciência ao Crea/SP acerca da impropriedade detectada, para que aprimore seus processos de 
+contratação, nos seguintes termos: [SEP_CONTEXTO] fabricante Hewlett Packard (HP), em afronta ao art. 9º, inciso I, alínea ‘a’, da Lei 14.133/2021 e ao 
+princípio da competitividade;  
+Manifestação da Unidade Jurisdicionada (peça 29, pp. 8-52): 
+a) a equipe de planejamento, em sua fase inicial, elaborou os Estudos Técnicos Preliminares, propondo 
+especificações para os equipamentos a serem adquiridos. Esses estudos basearam-se em dados disponíveis à 
+época e refletiam, em tese, as necessidades do Crea/SP naquele momento; 
+b) embora as especificações propostas refletissem as necessidades identificadas no momento de sua 
+elaboração, elas não acompanhavam as evoluções tecnológicas disponíveis no mercado, podendo 
+comprometer a eficiência, a durabilidade e a capacidade operacional dos equipamentos ao longo do tempo. 
+Com base nessa constatação, a equipe técnica deliberou pela atualização das especificações, buscando 
+alinhar os requisitos do edital às tecnologias mais modernas e adequadas ao mercado; 
+c) mas, como se pode perceber, os preços apresentados anteriormente foram praticamente iguais aos 
+valores informados após as alterações. Esse fato chama atenção para uma questão importante: é impossível 
+que equipamentos com especificações ultrapassadas, menos potentes e tecnologicamente defasadas, 
+apresentem o mesmo custo de máquinas que incorporam avanços significativos, como os descritos nas 
+modificações realizadas; 
+d) a manutenção de preços praticamente idênticos, mesmo com o acréscimo de tecnologias avançadas, 
+reforça a importância da atuação criteriosa da equipe de planejamento. Caso as especificações técnicas 
+originais, mais limitadas e obsoletas, tivessem sido mantidas, o Crea/SP correria o risco de adquirir 
+equipamentos inferiores pelo mesmo custo de máquinas significativamente superiores. Isso representaria um 
+claro prejuízo ao interesse público e um uso ineficiente dos recursos institucionais. No entanto, a equipe de 
+planejamento, atenta a essas peculiaridades, desempenhou seu trabalho de forma exemplar, assegurando 
+que as decisões fossem tomadas com precisão e plenamente alinhadas às necessidades institucionais e ao 
+princípio de eficiência; 
+e) a disponibilidade no mercado de diversos modelos aptos a cumprir as exigências é constatada não apenas 
+pela ampla participação de empresas no processo licitatório, mas também pelas cotações recebidas durante 
+a etapa de levantamento de preços estimados, tendo em vista que a maioria das empresas que enviaram seus 
+preços para a composição da estimativa de preços não possui qualquer vínculo ou parceria formal com a 
+empresa ‘HP’; 
+f) as empresas que receberam o ‘Termo de Referência’ elaboraram suas estimativas de preços sem 
+apresentar quaisquer objeções às especificações estabelecidas. Assim, caso houvesse direcionamento para 
+equipamentos de uma marca específica, como a ‘HP’, empresas representando outras marcas não teriam 
+condições de fornecer estimativas, uma vez que seus equipamentos não atenderiam aos requisitos definidos; 
+g) é relevante destacar que nenhum fornecedor em potencial, com exceção da representante, apresentou 
+questionamentos ou apontou impedimentos que pudessem configurar obstáculos à sua participação; 
+h) a participação de diversas empresas potenciais, sem qualquer vínculo ou parceria com a empresa HP, 
+evidencia a inexistência de qualquer indício de direcionamento na licitação. Nesse sentido, é relevante notar 
+que, entre as empresas que participaram do certame, duas delas não possuem parceria com a marca HP, o 
+que reforça a ausência de direcionamento; 
+i) caso houvesse a intenção de direcionar o certame para um fornecedor específico, dificilmente haveria 
+uma postura aberta à análise dos argumentos da impugnante e à realização de alterações no edital, como 
+foi feito. A flexibilização de critérios e a busca por um maior número de fornecedores aptos a participar do 
+processo reforçam o compromisso do Crea/SP com os princípios da isonomia, legalidade e moralidade 
+administrativa, conforme ficou claramente demonstrado ao longo do certame; 
+j) a postura adotada pelo Crea/SP em responder prontamente às solicitações e ajustar o edital, quando 
+cabível, como já mencionado, evidencia a ausência de qualquer intenção de direcionamento. Caso houvesse 
+tal intenção, seria improvável que a autarquia se empenhasse em ampliar a participação de empresas no 
+certame, garantindo que diversas marcas e modelos fossem compatíveis com as exigências técnicas; 
+k) o Crea/SP não apenas assegurou a possibilidade de participação de diferentes marcas e fabricantes, mas 
+também analisou tecnicamente as configurações oferecidas pelos licitantes. Ao considerar as possibilidades 
+de customização e compatibilidade tecnológica, o Conselho garantiu que especificações técnicas de marcas 
+amplamente disponíveis no mercado fossem plenamente atendidas, descartando qualquer hipótese de 
+direcionamento; e 
+l) é importante destacar que o Tribunal de Contas da União já havia realizado uma análise prévia sobre a 
+presente licitação. Na ocasião, o TCU ressaltou que o Conselho conduziu o processo com ampla análise das 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637265. [SEP_CONTEXTO] 9. Acórdão: 
+VISTOS, relatados e discutidos os presentes autos de representação, com pedido de medida 
+cautelar, formulado por Sistemas Convex Locações de Produtos de Informática Ltda. sobre possíveis 
+irregularidades ocorridas no Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo 
+Conselho Regional de Engenharia e Agronomia do Estado de São Paulo (Crea/SP) para a locação de 
+computadores e notebooks. 
+ACORDAM os ministros do Tribunal de Contas da União, reunidos em sessão do Plenário, 
+com fundamento nos arts. 43, inciso I, da Lei 8.443/1992, nos arts. 169, inciso V, 235, 237, inciso VII 
+e parágrafo único, do Regimento Interno-TCU, no art. 103, § 1º, da Resolução-TCU 259/2014, nos 
+arts. 4º, inciso I, e 9º, inciso I, da Resolução-TCU 315/2020 e ante as razões expostas pelo relator, em: 
+9.1. conhecer da representação, por atender os requisitos de admissibilidade, para, no 
+mérito, considerá-la parcialmente procedente; 
+9.2. indeferir o pedido de adoção de medida cautelar formulado pela representante, em face 
+da ausência dos pressupostos para sua concessão; 
+9.3. determinar ao Conselho Regional de Engenharia e Agronomia do Estado de São Paulo 
+que não prorrogue o contrato decorrente do Pregão Eletrônico para Registro de Preços 7/2024, nem 
+autorize a adesão de outras entidades aos seus termos, adotando, à época devida, as medidas cabíveis 
+para a realização de novo certame; 
+9.4. dar ciência ao Crea/SP sobre as seguintes impropriedades, identificadas no referido 
+certame, para que sejam adotadas medidas com vistas à prevenção de outras ocorrências semelhantes: 
+9.4.1 restrição à competitividade e direcionamento do certame, especialmente, em relação 
+aos itens 2, 3, 6 e 8, nos quais as especificações requeridas somente podem ser atendidas pelos 
+equipamentos da fabricante Hewlett Packard (HP), em afronta ao art. 9º, inciso I, alínea “a”, da Lei 
+14.133/2021 e ao princípio da competitividade; e 
+9.4.2. ausência, nos estudos técnicos preliminares da contratação, da identificação dos 
+diversos modelos existentes no mercado que pudessem atender completamente às especificações 
+exigidas e das justificativas para as exigências restritivas à competitividade, em afronta ao § 2º do art. 
+9º da Instrução Normativa-Seges/ME 58/2022 e à jurisprudência do TCU, a exemplo dos Acórdãos 
+214/2020 – Plenário e 1.973/2020 – Plenário; 
+9.5. comunicar esta decisão à representante e à unidade jurisdicionada; 
+9.6. arquivar os presentes autos. [SEP_CONTEXTO] ACÓRDÃO Nº 764/2025 – TCU – Plenário [SEP_CONTEXTO] “21.4. dar ciência ao Conselho Regional de Engenharia e Agronomia do Estado de São Paulo, com 
+fundamento no art. 9º, inciso I, da Resolução-TCU 315/2020, sobre as seguintes impropriedades/falhas, 
+identificadas no Pregão Eletrônico 7/2024, para que sejam adotadas medidas internas com vistas à 
+prevenção de outras ocorrências semelhantes: 
+a) restrição à competitividade e direcionamento do certame, especialmente em relação aos itens 2, 3, 6 e 8, 
+nos quais as especificações requeridas somente podem ser atendidas pelos equipamentos da fabricante 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637267."
+9;O TCU concluiu que houve dano ao erário, determinou o ressarcimento imediato pela empresa contratada e recomendou ao Crea/SP a adoção de software livre para futuras contratações, evitando a dependência de fornecedores específicos.;Erro;"Formato inesperado (sem Resultado): **Resultado: Correta**
+
+**Justificativa:**
+
+* O TCU analisou todos os trechos do documento original e identificou que a alegação é consistente com os requisitos de formalidade e com os termos do contrato.
+* A alegação é específica e não contém qualquer erro gramatical ou de ortografia.
+* A alegação é clara e concisa, e os fatos e argumentos são suficientes para que a unidade técnica certifique-se de que a alegação é correta.";"Em exame, representação, com pedido de medida cautelar, formulado por Sistemas 
+Convex Locações de Produtos de Informática Ltda. sobre possíveis irregularidades ocorridas no 
+Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo Conselho Regional de Engenharia 
+e Agronomia do Estado de São Paulo (Crea/SP) para a locação de computadores e notebooks. 
+2. Em síntese, a representante alegou que o certame foi direcionado para um único fabricante 
+(Hewlett Packard), uma vez que nenhuma outra máquina, de qualquer outro concorrente, conseguiria 
+atender, de forma completa, às exigências fixadas. 
+3. Verifico, preliminarmente, que o expediente encaminhado atende aos requisitos de 
+admissibilidade aplicáveis, podendo ser conhecido por esta Corte de Contas. 
+4. Quanto ao mérito, as informações reunidas nos autos demonstraram que as especificações 
+constantes do termo de referência continham uma série de requisitos técnicos inadequados, que não se 
+traduziam em critérios relevantes de performance ou sequer seriam pertinentes no caso de locação de 
+equipamentos, tais como exigência de frequência de operação de memória de 4800 mhz (mas não de 
+4400 mhz) ou quantidade de slots de memória disponíveis. Assim, o nível excessivo de detalhamento 
+das especificações indicava possível direcionamento para equipamentos de uma marca determinada. 
+5. A instrução inicial do processo, a cargo da Unidade de Auditoria Especializada em 
+Contratações (AudContratações), concluiu, em face da ausência de elementos essenciais ao 
+julgamento, pela necessidade de realização de oitiva prévia do Crea/SP, nos termos do art. 276, § 2º, 
+do Regimento Interno deste Tribunal, para que, no prazo de cinco dias úteis, a unidade jurisdicionada 
+se pronunciasse sobre as questões suscitadas e fornecesse informações adicionais. 
+6. Após o Crea/SP ter respondido à oitiva, a AudContratações analisou as justificativas 
+apresentadas, concluindo pela confirmação dos indícios de irregularidades, uma vez que o conselho 
+profissional não conseguiu comprovar que os equipamentos poderiam ser fornecidos por outros 
+fabricantes e restou comprovado o direcionamento de marca. 
+7. Quanto à execução contratual, o Crea/SP informou que o contrato já está em andamento, 
+com todos os equipamentos previstos instalados, e está sendo executado a contento. Adicionalmente, 
+aduziu que o preço contratado foi 40% do estimado inicialmente e que os valores obtidos se encontram 
+similares aos contidos em outros contratos da Administração Pública de mesmo objeto. 
+8. Assim, ponderando esses fatores e considerando que a licitação contou com ampla 
+participação de empresas e que nenhuma foi desclassificada por não aceitação da proposta, já que a 
+licitante vencedora ofertou o menor lance, a AudContratações acabou por concluir pela inexistência de 
+prejuízo à Administração e pela ausência de interesse público em suspender ou impugnar a 
+contratação. 
+9. Desse modo, sua instrução final contemplou apenas proposta de encaminhamento de 
+ciência ao Crea/SP acerca da impropriedade detectada, para que aprimore seus processos de 
+contratação, nos seguintes termos: [SEP_CONTEXTO] 9. Acórdão: 
+VISTOS, relatados e discutidos os presentes autos de representação, com pedido de medida 
+cautelar, formulado por Sistemas Convex Locações de Produtos de Informática Ltda. sobre possíveis 
+irregularidades ocorridas no Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo 
+Conselho Regional de Engenharia e Agronomia do Estado de São Paulo (Crea/SP) para a locação de 
+computadores e notebooks. 
+ACORDAM os ministros do Tribunal de Contas da União, reunidos em sessão do Plenário, 
+com fundamento nos arts. 43, inciso I, da Lei 8.443/1992, nos arts. 169, inciso V, 235, 237, inciso VII 
+e parágrafo único, do Regimento Interno-TCU, no art. 103, § 1º, da Resolução-TCU 259/2014, nos 
+arts. 4º, inciso I, e 9º, inciso I, da Resolução-TCU 315/2020 e ante as razões expostas pelo relator, em: 
+9.1. conhecer da representação, por atender os requisitos de admissibilidade, para, no 
+mérito, considerá-la parcialmente procedente; 
+9.2. indeferir o pedido de adoção de medida cautelar formulado pela representante, em face 
+da ausência dos pressupostos para sua concessão; 
+9.3. determinar ao Conselho Regional de Engenharia e Agronomia do Estado de São Paulo 
+que não prorrogue o contrato decorrente do Pregão Eletrônico para Registro de Preços 7/2024, nem 
+autorize a adesão de outras entidades aos seus termos, adotando, à época devida, as medidas cabíveis 
+para a realização de novo certame; 
+9.4. dar ciência ao Crea/SP sobre as seguintes impropriedades, identificadas no referido 
+certame, para que sejam adotadas medidas com vistas à prevenção de outras ocorrências semelhantes: 
+9.4.1 restrição à competitividade e direcionamento do certame, especialmente, em relação 
+aos itens 2, 3, 6 e 8, nos quais as especificações requeridas somente podem ser atendidas pelos 
+equipamentos da fabricante Hewlett Packard (HP), em afronta ao art. 9º, inciso I, alínea “a”, da Lei 
+14.133/2021 e ao princípio da competitividade; e 
+9.4.2. ausência, nos estudos técnicos preliminares da contratação, da identificação dos 
+diversos modelos existentes no mercado que pudessem atender completamente às especificações 
+exigidas e das justificativas para as exigências restritivas à competitividade, em afronta ao § 2º do art. 
+9º da Instrução Normativa-Seges/ME 58/2022 e à jurisprudência do TCU, a exemplo dos Acórdãos 
+214/2020 – Plenário e 1.973/2020 – Plenário; 
+9.5. comunicar esta decisão à representante e à unidade jurisdicionada; 
+9.6. arquivar os presentes autos. [SEP_CONTEXTO] 10. Estou plenamente de acordo com a análise e a conclusão da unidade técnica, mas acredito 
+que é necessária a adoção de medidas adicionais, com o objetivo de limitar as eventuais consequências 
+da irregularidade identificada. 
+11. Conforme informações disponíveis nos autos, a ata de registro de preços foi concluída com 
+a homologação do certame em 16/8/2024, e o contrato foi firmado em 12/9/2024, com a empresa 
+Simpress Comércio Locação e Serviços Ltda., pelo valor mensal de R$ 496.293,10, com prazo de 
+vigência de 36 meses, mas, que, de acordo com o art. 107 da Lei 14.133/2021, pode ser prorrogado por 
+até 10 anos. 
+12. Assim, para evitar que os efeitos dessa falha se prolonguem no tempo ou que venham a se 
+expandir além dos limites da unidade jurisdicionada, entendo necessário expedir determinação ao 
+Crea/SP para que: (i) não prorrogue o contrato decorrente do Pregão 7/2024, adotando, antes de seu 
+encerramento, as medidas tempestivas para a formulação de novo certame; e (ii) não permita a adesão 
+de outras entidades à ata de registro de preços. 
+Ante o exposto, acolho, com o acréscimo indicado acima, a proposta de encaminhamento 
+da unidade técnica e VOTO no sentido de que o Tribunal adote a minuta de acórdão que submeto à 
+deliberação deste Colegiado. [SEP_CONTEXTO] Trata-se de representação, com pedido de medida cautelar, formulado por Sistemas 
+Convex Locações de Produtos de Informática Ltda. acerca de possíveis irregularidades ocorridas no 
+Pregão Eletrônico para Registro de Preços 7/2024, promovido pelo Conselho Regional de Engenharia 
+e Agronomia do Estado de São Paulo (Crea/SP) para a locação de computadores e notebooks. 
+2. Reproduzo, a seguir, trechos da instrução elaborada pela Unidade de Auditoria 
+Especializada em Contratações (AudContratações), que analisou a matéria: [SEP_CONTEXTO] “21.4. dar ciência ao Conselho Regional de Engenharia e Agronomia do Estado de São Paulo, com 
+fundamento no art. 9º, inciso I, da Resolução-TCU 315/2020, sobre as seguintes impropriedades/falhas, 
+identificadas no Pregão Eletrônico 7/2024, para que sejam adotadas medidas internas com vistas à 
+prevenção de outras ocorrências semelhantes: 
+a) restrição à competitividade e direcionamento do certame, especialmente em relação aos itens 2, 3, 6 e 8, 
+nos quais as especificações requeridas somente podem ser atendidas pelos equipamentos da fabricante 
+Para verificar as assinaturas, acesse www.tcu.gov.br/autenticidade e informe o código 77637267."

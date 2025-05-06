@@ -1,0 +1,10 @@
+Sentenca,Prediction,Confianca,numero_tokens,runtime_seconds
+O processo TC 004.980/2017-4 foi iniciado por iniciativa do próprio BNDES, visando a regularização de sua política salarial diante das novas diretrizes do Ministério da Fazenda.",Incorreta,1.0000,465,64.92
+"A principal conclusão do TCU foi o reconhecimento de que o BNDES é uma estatal dependente da União, o que implica a imediata aplicação do teto remuneratório constitucional a todos os seus empregados, inclusive nas subsidiárias.",Incorreta,1.0000,1450,6.08
+O acórdão também determinou que o banco restituísse os valores recebidos a título de PLR nos últimos cinco anos por violar os limites legais de remuneração.,Correta,0.9993,1476,6.38
+A representação TC 004.980/2017-4, apresentada pela AGU, questionava a atuação do BNDES como empresa de fomento.",Incorreta,0.9998,1505,6.86
+"Segundo o TCU, embora o banco utilize recursos públicos, como os do FAT e FMM, isso não o caracteriza como dependente da União, pois parte dos recursos provém de arrecadação própria.",Incorreta,0.9999,438,4.44
+"No entanto, o tribunal decidiu que todos os benefícios pagos aos empregados, como vale-transporte e PLR, deveriam ser imediatamente cortados, mesmo os já homologados pela SEST.",Incorreta,0.9987,436,4.28
+O Acórdão 733/2025 trata do pedido do TCU para que o BNDES seja transformado em autarquia, a fim de alinhar sua estrutura ao controle da União.",Incorreta,1.0000,437,4.44
+"A decisão final determinou o reconhecimento da dependência do banco e o bloqueio do pagamento de bônus futuros, sob pena de nulidade.",Incorreta,0.9999,419,5.03
+"Ficou evidente que os lucros do banco decorrem majoritariamente de sua competitividade de mercado, o que justifica equiparação aos bancos privados e não aplicação do teto.",Correta,0.9981,425,4.01

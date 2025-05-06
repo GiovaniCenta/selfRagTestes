@@ -3,9 +3,26 @@ from PyPDF2 import PdfReader
 import logging
 import re # Import regex module
 from typing import List, Tuple, Union, Dict, Optional, Any
+import nltk # Added NLTK
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# --- NLTK Resource Download --- (Added section)
+def _ensure_nltk_punkt():
+    """Ensures that the NLTK 'punkt' resource is available."""
+    try:
+        nltk.data.find('tokenizers/punkt')
+        logging.debug("NLTK 'punkt' resource found.")
+    except nltk.downloader.DownloadError:
+        logging.info("NLTK 'punkt' resource not found. Downloading...")
+        nltk.download('punkt')
+        logging.info("NLTK 'punkt' resource downloaded successfully.")
+    except Exception as e:
+        logging.error(f"Error checking/downloading NLTK 'punkt': {e}")
+        # Depending on policy, you might want to re-raise or exit
+
+_ensure_nltk_punkt() # Call this once when the module is loaded
 
 def load_document(file_path: str) -> Union[str, List[Tuple[int, str]], None]:
     """
@@ -96,11 +113,45 @@ def split_text_into_paragraphs(text: str) -> list[str]:
 
     return non_empty_paragraphs
 
+# --- New function to split paragraphs into sentences --- (Added function)
+def _split_paragraphs_into_sentences(paragraphs: List[str]) -> List[str]:
+    """Splits a list of paragraphs into a list of sentences using NLTK.
+    Also removes summary markers like 'Resumo X' from the beginning of sentences.
+    """
+    all_sentences = []
+    if not paragraphs:
+        return []
+    
+    # Regex to find markers like "Resumo 1", "Resumo 2:", etc. at the start of a string
+    # It looks for "Resumo" (case-insensitive) followed by a number, optionally a colon, and whitespace.
+    summary_marker_regex = re.compile(r"^resumo\s*\d+\s*:?\s*", re.IGNORECASE)
+
+    for paragraph in paragraphs:
+        if paragraph: # Ensure paragraph is not empty
+            try:
+                sentences_in_paragraph = nltk.sent_tokenize(paragraph, language='portuguese')
+                cleaned_sentences = []
+                for sent in sentences_in_paragraph:
+                    # Remove the marker from the beginning of the sentence if present
+                    cleaned_sent = summary_marker_regex.sub("", sent).strip()
+                    if cleaned_sent: # Add only if not empty after cleaning
+                        cleaned_sentences.append(cleaned_sent)
+                all_sentences.extend(cleaned_sentences)
+            except Exception as e:
+                logging.warning(f"NLTK sent_tokenize failed for paragraph '{paragraph[:50]}...': {e}. Treating paragraph as a single sentence.")
+                # Fallback: treat the whole paragraph as a single sentence if tokenization fails
+                # Still try to clean it
+                cleaned_paragraph = summary_marker_regex.sub("", paragraph).strip()
+                if cleaned_paragraph: # Add only if non-empty after cleaning
+                    all_sentences.append(cleaned_paragraph)
+    return all_sentences
+
 def load_and_prepare_data(acordao_path: str, resumo_path: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]] | tuple[None, None]:
     """
     Loads the main document (acordao) and summary document (resumo),
     splits them into paragraphs/claims, and structures them with metadata.
     Includes page number in metadata for PDF acórdãos.
+    Resumo is now split into sentences, each treated as a claim.
 
     Args:
         acordao_path: Path to the main document file (.txt or .pdf).
@@ -110,8 +161,8 @@ def load_and_prepare_data(acordao_path: str, resumo_path: str) -> tuple[list[dic
         A tuple containing two lists:
         1. acordao_chunks: List of dictionaries, each representing a paragraph
            chunk from main document with its text and metadata (including page_number for PDFs).
-        2. resumo_claims: List of dictionaries, each representing claim
-           (paragraph) from summary with its text and metadata.
+        2. resumo_claims: List of dictionaries, each representing a claim
+           (now a sentence) from summary with its text and metadata.
         Returns (None, None) if either document cannot be loaded successfully.
     """
     logging.info(f"Starting data loading and preparation for:")
@@ -170,22 +221,27 @@ def load_and_prepare_data(acordao_path: str, resumo_path: str) -> tuple[list[dic
     resumo_claims_structured: List[Dict[str, Any]] = []
     if resumo_path and os.path.exists(resumo_path):
         logging.info(f"Loading and processing resumo from: {resumo_path}")
-        resumo_text = load_document(resumo_path)
-        if resumo_text is not None and isinstance(resumo_text, str): # Check if load successful as string
-            resumo_paragraphs = split_text_into_paragraphs(resumo_text)
-            for i, claim_text in enumerate(resumo_paragraphs):
+        resumo_text_content = load_document(resumo_path) # Renamed variable for clarity
+        if resumo_text_content is not None and isinstance(resumo_text_content, str): # Check if load successful as string
+            # First, split the whole resumo text into paragraphs
+            resumo_paragraphs = split_text_into_paragraphs(resumo_text_content)
+            # Then, split each paragraph into sentences to get claims
+            resumo_sentences = _split_paragraphs_into_sentences(resumo_paragraphs) # MODIFIED LOGIC
+
+            for i, claim_text in enumerate(resumo_sentences):
                 metadata = {
                     "source": resumo_path,
-                    "claim_index": i
+                    "claim_index": i, # Index now refers to sentence index across all paragraphs
+                    "claim_type": "sentence" # Added type for clarity
                 }
                 resumo_claims_structured.append({
                     "text": claim_text,
                     "metadata": metadata
                 })
-            logging.info(f"Processed {len(resumo_claims_structured)} claims from the resumo.")
+            logging.info(f"Processed {len(resumo_claims_structured)} claims (sentences) from the resumo.")
         else:
-            # Log warning if resumo path provided but load failed
-            logging.warning(f"Failed to load or process the provided resumo file: {resumo_path}")
+            # Log warning if resumo path provided but load failed or not string
+            logging.warning(f"Failed to load or process the provided resumo file as text: {resumo_path}")
             # Optionally, you might want to return None, None here if resumo is mandatory
             # For now, allow indexing to proceed without resumo if it fails loading
     elif resumo_path:
@@ -242,7 +298,7 @@ if __name__ == "__main__":
         if acordao_chunks is not None and resumo_claims is not None:
             print("\n--- Load and Prepare Results ---")
             print(f"Number of Acordão Chunks generated: {len(acordao_chunks)}")
-            print(f"Number of Resumo Claims generated:  {len(resumo_claims)}")
+            print(f"Number of Resumo Claims (Sentences) generated:  {len(resumo_claims)}") # Updated label
 
             if acordao_chunks:
                 print("\nFirst Acordão Chunk (first 150 chars):")

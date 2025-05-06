@@ -10,8 +10,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - RERANKER - %(level
 # You can choose base or large. Base is smaller and faster.
 # RERANKER_MODEL_ID = "BAAI/bge-reranker-large"
 RERANKER_MODEL_ID = "BAAI/bge-reranker-base"
-RERANKER_SCORE_THRESHOLD = 0.1 # Default threshold for relevance after rerank
-RERANKER_SELECT_TOP_N = 3      # Default number of top chunks to select after rerank
+RERANKER_SCORE_THRESHOLD = 0.05 # Default threshold for relevance after rerank
+RERANKER_SELECT_TOP_N = 5      # Default number of top chunks to select after rerank
 
 # --- Cached Model ---
 _reranker_model_instance: Optional[CrossEncoder] = None
