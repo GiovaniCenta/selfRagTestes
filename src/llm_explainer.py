@@ -8,8 +8,8 @@ import re # Added import for regex in explain function
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - EXPLAINER - %(levelname)s - %(message)s')
 
 # --- Constants --- 
-# Updated Model ID to DeepSeek R1 Distilled Llama 8B
-LLM_EXPLAINER_MODEL_ID = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B" 
+# Updated Model ID to meta-llama/Llama-3.1-8B-Instruct
+LLM_EXPLAINER_MODEL_ID = "meta-llama/Llama-3.1-8B-Instruct" 
 # This model should fit in BF16 on A100 GPUs.
 MODEL_TORCH_DTYPE = torch.bfloat16 
 
@@ -89,59 +89,71 @@ def load_explainer_model_and_tokenizer(
 
 def _format_explanation_prompt(query: str, contexts: List[str]) -> str:
     """
-    Formats the prompt for the deepseek-ai/DeepSeek-R1-Distill-Llama-8B model.
-    Uses the Llama 3 instruct format structure, but following DeepSeek's recommendation,
-    places all instructions within the user message.
-    Instructs the model to respond in Portuguese with a specific format.
+    Formats the prompt for the meta-llama/Llama-3.1-8B-Instruct model.
+    Uses the official Llama 3.1 instruct format structure.
     """
-    context_str = "\\n\\n".join(f"Parágrafo {i+1}:\\n{chunk}" for i, chunk in enumerate(contexts) if chunk.strip())
+    context_str = "\n\n".join(f"Parágrafo {i+1}:\n{chunk}" for i, chunk in enumerate(contexts) if chunk.strip())
     if not context_str:
         context_str = "Nenhum parágrafo de contexto foi fornecido."
 
-    # Instructions (previously in system prompt, now moved to user prompt per DeepSeek R1 recommendations)
-    instructions = (
-        f"Sua tarefa é analisar o conjunto de Parágrafos fornecidos abaixo e determinar se eles, como um todo, confirmam ou contradizem a Afirmação dada. Seja extremamente rigoroso e cético.\\n\\n"
-        f"PASSO A PASSO PARA SUA ANÁLISE:\\n"
-        f"1. Decomponha a Afirmação em todas as suas partes ou sub-alegações constituintes.\\n"
-        f"2. Para CADA parte da Afirmação, verifique se há evidência CLARA e DIRETA nos Parágrafos que a confirme.\\n"
-        f"3. Verifique também se há QUALQUER informação nos Parágrafos que CONTRADIGA explicitamente QUALQUER parte da Afirmação.\\n\\n"
-        f"REGRAS PARA O VEREDITO ÚNICO ('Correto' ou 'Incorreto'):\\n"
-        f"- Use 'Correto' SOMENTE E APENAS SE TODAS AS PARTES da Afirmação forem CLARAMENTE confirmadas pelos Parágrafos E não houver NENHUMA contradição a QUALQUER parte da Afirmação.\\n"
-        f"- Use 'Incorreto' SE: \\n"
-        f"    a) QUALQUER parte da Afirmação for explicitamente CONTRADITA pelos Parágrafos; OU\\n"
-        f"    b) QUALQUER parte da Afirmação NÃO PUDER ser confirmada por falta de informação clara nos Parágrafos; OU\\n"
-        f"    c) Houver qualquer ambiguidade ou dúvida razoável sobre a confirmação de TODAS as partes.\\n\\n"
-        f"NÃO forneça vereditos separados para cada parágrafo. O veredito é sobre a Afirmação como um todo frente ao conjunto de Parágrafos.\\n"
-        f"Sua resposta DEVE OBRIGATORIAMENTE começar com a palavra 'Correto' ou 'Incorreto', seguida por um ponto final ('.') e uma nova linha.\\n"
-        f"Exemplo de início: Correto.\\n"
-        f"Exemplo de início: Incorreto.\\n"
-        f"Logo após o veredito e a nova linha, forneça uma justificativa curta (até 3 frases) na forma 'Justificativa: [sua explicação]', explicando sua decisão com base no conjunto de parágrafos e mencionando brevemente qual regra (acima) levou à sua decisão, especialmente se for 'Incorreto'.\\n"
-        f"**Responda em português.**"
+    # System prompt with detailed instructions
+    system_prompt_content = (
+        f"Sua tarefa é analisar o conjunto de Parágrafos fornecidos no 'user prompt' e determinar se eles, como um todo, confirmam ou contradizem a Afirmação dada. Seja extremamente rigoroso, cético e analítico.\n\n"
+        f"PASSO A PASSO DETALHADO PARA SUA ANÁLISE INTERNA:\n"
+        f"1. DECOMPONHA A AFIRMAÇÃO: Identifique todas as suas partes ou sub-alegações constituintes. Cada uma delas deve ser verificada individualmente.\n"
+        f"2. VERIFICAÇÃO RIGOROSA NOS PARÁGRAFOS: Para CADA sub-alegação da Afirmação, procure por evidência CLARA, DIRETA e INEQUÍVOCA nos Parágrafos que a confirme.\n"
+        f"3. BUSCA POR CONTRADIÇÕES: Verifique também se há QUALQUER informação nos Parágrafos que CONTRADIGA explicitamente QUALQUER sub-alegação da Afirmação.\n\n"
+        f"REGRAS ESTRITAS PARA O VEREDITO ÚNICO ('Correto' ou 'Incorreto'):\n"
+        f"- Use 'Correto' SOMENTE E APENAS SE TODAS AS PARTES e sub-alegações da Afirmação forem CLARAMENTE e INEQUIVOCAMENTE confirmadas pelos Parágrafos E não houver NENHUMA contradição a QUALQUER parte da Afirmação.\n"
+        f"- Use 'Incorreto' SE QUALQUER UMA DAS SEGUINTES CONDIÇÕES FOR VERDADEIRA: \n"
+        f"    a) QUALQUER parte ou sub-alegação da Afirmação for explicitamente CONTRADITA por alguma informação nos Parágrafos; OU\n"
+        f"    b) QUALQUER parte ou sub-alegação da Afirmação NÃO PUDER ser confirmada por falta de informação clara e direta nos Parágrafos (ou seja, a informação é ausente ou ambígua); OU\n"
+        f"    c) Houver qualquer ambiguidade, dúvida razoável ou necessidade de inferência não explícita para conectar os Parágrafos à Afirmação.\n\n"
+        f"SOBRE A JUSTIFICATIVA:\n"
+        f"- Sua justificativa deve ser a consequência lógica direta da sua análise e da aplicação das regras de veredito. NÃO invente informações.\n"
+        f"- NÃO forneça vereditos separados para cada parágrafo. O veredito é sobre a Afirmação como um todo, frente ao CONJUNTO de Parágrafos.\n\n"
+        f"FORMATO OBRIGATÓRIO DA SUA RESPOSTA:\n"
+        f"Sua resposta DEVE OBRIGATORIAMENTE começar com a palavra 'Correto' ou 'Incorreto', seguida por um ponto final ('.') e uma nova linha.\n"
+        f"Exemplo de início: Correto.\n"
+        f"Exemplo de início: Incorreto.\n"
+        f"Logo após o veredito e a nova linha, forneça uma justificativa curta e precisa (idealmente 1-2 frases, máximo 3) na forma 'Justificativa: [sua explicação]'. Sua justificativa DEVE:\n"
+        f"a) Explicar o porquê do veredito ('Correto' ou 'Incorreto') com base ESTRITAMENTE nas informações contidas nos 'Parágrafos' fornecidos e na sua análise passo-a-passo.\n"
+        f"b) Se possível, referenciar brevemente qual(is) 'Parágrafo(s)' específico(s) (ex: 'Parágrafo 1', 'Parágrafos 2 e 3') sustentam sua conclusão, ou a ausência de informação neles.\n"
+        f"c) NÃO utilize conhecimento externo. Baseie-se APENAS nos textos fornecidos.\n"
+        f"d) Se o veredito for 'Incorreto', mencione sucintamente qual regra (a, b ou c das REGRAS ESTRITAS) levou à sua decisão (ex: 'Incorreto devido à regra b, pois a informação sobre X não foi encontrada no Parágrafo Y').\n"
+        f"Responda em português."
     )
 
-    # Constructing the user message including instructions
-    user_message = (
-        f"{instructions}\\n\\n"
-        f"---\n"
-        f"Afirmação: {query}\\n\\n"
-        f"Parágrafos:\\n{context_str}"
-        f"\n---"
+    # User prompt containing only the specific task elements
+    user_prompt_content = (
+        f"Afirmação: {query}\n\n"
+        f"Parágrafos:\n{context_str}"
     )
 
-    # Constructing the Llama 3 prompt structure with empty system prompt
+    # Constructing the Llama 3.1 prompt structure
+    # Reference: https://llama.meta.com/docs/model-cards-and-prompt-formats/meta-llama-3_1/
+    # <|begin_of_text|> (special token to signify the start of a prompt)
+    # <|start_header_id|>system<|end_header_id|> (system prompt header)
+    # System prompt content
+    # <|eot_id|> (special token to signify the end of a system prompt)
+    # <|start_header_id|>user<|end_header_id|> (user prompt header)
+    # User prompt content
+    # <|eot_id|> (special token to signify the end of a user prompt)
+    # <|start_header_id|>assistant<|end_header_id|> (assistant prompt header, model will generate from here)
+    
     prompt = (
         f"<|begin_of_text|>"
-        f"<|start_header_id|>system<|end_header_id|>\\n\\n<|eot_id|>"
-        f"<|start_header_id|>user<|end_header_id|>\\n\\n{user_message}<|eot_id|>"
-        f"<|start_header_id|>assistant<|end_header_id|>\\n\\n" # Model will continue from here
+        f"<|start_header_id|>system<|end_header_id|>\n\n{system_prompt_content}<|eot_id|>"
+        f"<|start_header_id|>user<|end_header_id|>\n\n{user_prompt_content}<|eot_id|>"
+        f"<|start_header_id|>assistant<|end_header_id|>\n\n" # Model will continue from here
     )
     return prompt
 
-def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, temperature: float = 0.6) -> Tuple[str, str]:
+def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, temperature: float = 0.5) -> Tuple[str, str]:
     """
     Generates a prediction ("Correto", "Incorreto", or "ERRO_DE_PARSING") and a rationale
     explaining whether the provided texts support the query.
-    Uses the deepseek-ai/DeepSeek-R1-Distill-Llama-8B model.
+    Uses the meta-llama/Llama-3.1-8B-Instruct model.
     """
     default_prediction = "ERRO_DE_PARSING"
     default_rationale = "Não foi possível gerar a explicação ou parsear o resultado do LLM."
