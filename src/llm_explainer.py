@@ -159,32 +159,45 @@ def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, tem
 
         # Regex to capture "Resultado: <veredito>\nJustificativa: <texto>"
         # We added "Resultado: " to the prompt, so model starts generating the veredito.
-        match = re.search(r"^(Correto|Incorreto)\s*[\n]*Justificativa:\s*(.*)", llm_response_text, re.DOTALL | re.IGNORECASE)
+        # New regex: flexible for verdicts like "Ínsuficiente.", "Incorreto.", "Correto."
+        # It expects the model to output: <VERDICT_WORD>.\n\nJustificativa: <TEXT>
+        # because the prompt ends with "Resultado: "
+        match = re.search(r"^\s*([\wÀ-ú]+)\.?\s*[\n]*Justificativa:\s*(.*)", llm_response_text, re.DOTALL | re.IGNORECASE)
 
         if match:
-            extracted_prediction = match.group(1).strip()
+            extracted_verdict_word = match.group(1).strip().lower()
             extracted_rationale = match.group(2).strip()
 
-            if extracted_prediction.lower() == "correto":
+            # Map common Portuguese verdicts
+            if extracted_verdict_word == "correto" or extracted_verdict_word == "confere":
                 prediction = "Correto"
-            elif extracted_prediction.lower() == "incorreto":
+            elif extracted_verdict_word == "incorreto" or extracted_verdict_word == "não confere":
                 prediction = "Incorreto"
+            elif extracted_verdict_word == "insuficiente" or extracted_verdict_word == "indeterminado":
+                prediction = "Indeterminado"
             else:
-                # If it's something else but looks like a prediction, keep it but log
-                logging.warning(f"LLM prediction was '{extracted_prediction}', not exactly 'Correto' or 'Incorreto'. Using it as is.")
-                prediction = extracted_prediction # Or handle more strictly
+                # If it's something else but looks like a prediction, keep it but log, or default to ERRO_DE_PARSING
+                logging.warning(f"LLM verdict word was '{extracted_verdict_word}', not directly mapped. Defaulting prediction or using as is if configured.")
+                # For now, let's consider it a parsing error if not explicitly mapped, 
+                # or you could assign prediction = extracted_verdict_word.capitalize()
+                prediction = default_prediction # Or prediction = extracted_verdict_word.capitalize() if you want to keep unmapped verdicts
+                if prediction == default_prediction:
+                     extracted_rationale = f"LLM usou um termo de veredito não mapeado ('{extracted_verdict_word}'). Resposta completa: {llm_response_text}"
 
             rationale = extracted_rationale
-            if not rationale: # If rationale is empty after "Justificativa:"
-                rationale = "Explicação não fornecida pelo LLM após a etiqueta 'Justificativa:'."
-            logging.info(f"Parsed LLM Output: Prediction='{prediction}', Rationale='{rationale[:100]}...'")
+            if not rationale and prediction != default_prediction: # If rationale is empty after "Justificativa:" but verdict was parsed
+                rationale = f"Explicação não fornecida pelo LLM após a etiqueta 'Justificativa:' para o veredito '{prediction}'."
+            elif not rationale and prediction == default_prediction:
+                rationale = f"LLM não forneceu justificativa e o veredito ('{extracted_verdict_word}') não foi mapeado. Resposta: {llm_response_text}"
+            
+            logging.info(f"Parsed LLM Output: Verdict Word='{extracted_verdict_word}', Mapped Prediction='{prediction}', Rationale='{rationale[:100]}...'")
         else:
-            logging.warning(f"Could not parse LLM response into 'Resultado' and 'Justificativa'. Raw response: '{llm_response_text}'")
+            logging.warning(f"Could not parse LLM response starting with a verdict word and 'Justificativa:'. Raw response: '{llm_response_text}'")
             # Rationale is already llm_response_text, prediction is default_prediction
-            rationale = f"LLM não seguiu o formato esperado. Resposta: {llm_response_text}"
+            rationale = f"LLM não seguiu o formato esperado (Veredito. Justificativa: ...). Resposta: {llm_response_text}"
 
 
-        if not rationale and prediction == default_prediction: # If both are still defaults
+        if not rationale and prediction == default_prediction: # If both are still defaults, e.g. empty LLM response
              rationale = "A explicação gerada pelo LLM estava vazia ou não foi parseada."
             
         return prediction, rationale
