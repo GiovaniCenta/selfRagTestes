@@ -1,9 +1,23 @@
-torch --index-url https://download.pytorch.org/whl/cu118
-transformers
-bitsandbytes
+# Base Dependencies (Keep existing relevant ones if any, e.g., pypdf)
+# Assuming pypdf2 or similar was used before, keep it if needed for load_data.py
+# pypdf2 
+
+# Specified versions and new packages
+sentence-transformers==2.7.0
+transformers==4.41.0
+torch 
+bitsandbytes 
+peft
 accelerate
-sentence-transformers
 chromadb
-pypdf2
-streamlit
-nltk 
+scikit-learn
+python-dotenv
+streamlit # Keep if app.py is still relevant
+peft
+
+# Reranker specific (implicitly needed by sentence-transformers)
+# huggingface_hub 
+
+# Optional: Add other dependencies identified during refactoring if needed
+# faiss-cpu # Or faiss-gpu if used before and switching from ChromaDB? (Likely not needed with Cosmos)
+# nltk # If still used for sentence splitting somewhere 

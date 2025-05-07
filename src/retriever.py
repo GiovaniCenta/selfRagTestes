@@ -5,6 +5,11 @@ from sentence_transformers import SentenceTransformer
 import chromadb
 from typing import List, Dict, Any, Tuple, Optional
 
+# Assuming access to the embedding model function from data_loader
+from .data_loader import get_embedding_model 
+# Corrected import: Removed _get_cosmos_container
+from .indexer import _get_chroma_collection, CHROMA_COLLECTION_NAME
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - RETRIEVER - %(levelname)s - %(message)s')
 
@@ -14,7 +19,6 @@ EMBEDDING_MODEL_NAME = "intfloat/multilingual-e5-large-instruct"
 # Define path relative to project root
 _PROJECT_ROOT_RET = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHROMA_PERSIST_DIR = os.path.join(_PROJECT_ROOT_RET, "chroma_db_index")
-CHROMA_COLLECTION_NAME = "acordaos"
 # Prefix for query embeddings (as recommended for E5 models)
 QUERY_PREFIX = "query: "
 
@@ -157,45 +161,107 @@ def retrieve_relevant_chunks(
         return None
 
 
-# --- Example Usage Block (for direct testing) ---
-if __name__ == "__main__":
-    print("\n" + "="*20 + " Running retriever.py Direct Execution Test " + "="*20)
+def search(query: str, processo_id: str, k: int = 20) -> List[Dict]:
+    """
+    Performs a vector search in ChromaDB, filtered by 'processo_id',
+    to retrieve the top k relevant document chunks.
 
-    # Example query (replace with a real claim from your summaries)
-    sample_query = "O BNDES é uma estatal dependente da União"
-    print(f'Test Query: "{sample_query}"')
-    print(f"Using DB path: {os.path.abspath(CHROMA_PERSIST_DIR)}")
-    print(f"Using Collection: {CHROMA_COLLECTION_NAME}")
-    print(f"Using Model: {EMBEDDING_MODEL_NAME}")
+    Args:
+        query: The search query text (claim).
+        processo_id: The process ID to filter results (must match metadata in ChromaDB).
+        k: The maximum number of results to retrieve.
 
+    Returns:
+        A list of document dictionaries, each containing at least 'id', 'text',
+        'metadata' (including 'processo'), and 'distance' (or 'score').
+        Returns an empty list if an error occurs or no results are found.
+    """
+    if not query or not processo_id:
+        logging.warning("Query and processo_id must be provided for ChromaDB search.")
+        return []
 
     try:
-        # Direct call - will initialize model and collection internally
-        retrieved_results = retrieve_relevant_chunks(sample_query, top_k=3)
+        # 1. Get Query Vector using the same model as indexing
+        logging.debug(f"Generating embedding for query (retriever): '{query[:50]}...'")
+        embedder = get_embedding_model() # Uses cached model from data_loader
+        # Ensure normalization matches indexing if it was done (pdf_to_docs does normalize_embeddings=True)
+        query_vector = embedder.encode(query, normalize_embeddings=True).tolist()
+        logging.debug(f"Query vector generated for ChromaDB search (dim: {len(query_vector)}).")
 
-        if retrieved_results and retrieved_results.get('ids', [[]])[0]:
-            print("\n--- Retrieval Results ---")
-            ids = retrieved_results['ids'][0]
-            documents = retrieved_results['documents'][0]
-            distances = retrieved_results['distances'][0]
-            metadatas = retrieved_results['metadatas'][0]
+        # 2. Get ChromaDB Collection
+        collection = _get_chroma_collection() # Uses cached collection from indexer
 
-            for i in range(len(ids)):
-                print(f"Rank {i+1}:")
-                print(f"  ID: {ids[i]}")
-                print(f"  Distance: {distances[i]:.4f}")
-                print(f"  Metadata: {metadatas[i]}")
-                print(f"  Document: {documents[i][:250]}...") # Print preview
-                print("-" * 10)
-        elif retrieved_results: # Query executed but returned no results
-             print("\n--- Retrieval Results ---")
-             print("Query executed, but no relevant chunks found.")
-        else: # Retrieval failed (error logged)
-             print("\n--- Retrieval FAILED ---")
-             print("Check logs above for error details.")
+        if collection.count() == 0:
+            logging.warning(f"ChromaDB collection '{collection.name}' is empty. Cannot retrieve.")
+            return []
 
+        # 3. Perform Vector Search with Metadata Filter for 'processo_id'
+        logging.info(f"Querying ChromaDB collection '{collection.name}' for top {k} results "
+                     f"where processo = '{processo_id}'...")
+        
+        results = collection.query(
+            query_embeddings=[query_vector], # Chroma expects a list of embeddings
+            n_results=k,
+            where={"processo": processo_id}, # Metadata filter
+            include=['metadatas', 'documents', 'distances'] # Specify what to include
+        )
+        
+        retrieved_docs = []
+        if results and results.get('ids') and results.get('ids')[0]: # Chroma returns lists within lists
+            ids_list = results['ids'][0]
+            documents_list = results['documents'][0]
+            metadatas_list = results['metadatas'][0]
+            distances_list = results['distances'][0]
+            
+            for i in range(len(ids_list)):
+                doc = {
+                    "id": ids_list[i],
+                    "text": documents_list[i],
+                    "metadata": metadatas_list[i],
+                    "distance": distances_list[i] # Cosine distance, lower is better
+                    # If you prefer a score (0-1, higher is better) for cosine:
+                    # "score": 1 - distances_list[i] if distances_list[i] is not None else 0 
+                }
+                retrieved_docs.append(doc)
+            logging.info(f"Retrieved {len(retrieved_docs)} candidate documents from ChromaDB for processo '{processo_id}'.")
+        else:
+            logging.info(f"No results found in ChromaDB for processo '{processo_id}' matching the query.")
+            
+        return retrieved_docs
 
     except Exception as e:
-        print(f"An error occurred during the direct execution test: {e}")
+        logging.error(f"Failed to retrieve documents from ChromaDB for query '{query[:50]}...' and processo '{processo_id}': {e}", exc_info=True)
+        return []
 
-    print("\n" + "="*20 + " End of retriever.py Direct Execution Test " + "="*20) 
+# --- Example Usage Block (for direct testing) ---
+if __name__ == "__main__":
+    print("\n" + "="*20 + " Running retriever.py (ChromaDB) Direct Execution Test " + "="*20)
+
+    # Ensure CHROMA_PERSIST_DIR exists for the test to run meaningfully.
+    if not os.path.exists(CHROMA_PERSIST_DIR):
+        print(f"ChromaDB persistence directory NOT FOUND: {os.path.abspath(CHROMA_PERSIST_DIR)}")
+        print("Please run the indexer (e.g., python src/indexer.py) first to create and populate the DB.")
+    else:
+        print(f"Using ChromaDB from: {os.path.abspath(CHROMA_PERSIST_DIR)}")
+        print(f"Querying collection: {CHROMA_COLLECTION_NAME}")
+
+        # Example query and processo_id (ensure these exist in your test ChromaDB)
+        test_query = "primeiro parágrafo do processo um" # Query that might match dummy data in indexer.py
+        test_processo_id = "PROC1-2024" # Must match a 'processo' value in metadata
+        
+        print(f"\nTesting retrieval for query: '{test_query}'")
+        print(f"Filtering for processo: '{test_processo_id}'")
+        
+        retrieved_documents = search(test_query, test_processo_id, k=2)
+        
+        if retrieved_documents:
+            print(f"\nSuccessfully retrieved {len(retrieved_documents)} documents:")
+            for i, doc_info in enumerate(retrieved_documents):
+                print(f"  Rank {i+1}: ID={doc_info.get('id')}, Distance={doc_info.get('distance'):.4f}")
+                print(f"    Text: {doc_info.get('text', '')[:100]}...")
+                print(f"    Metadata: {doc_info.get('metadata')}")
+        else:
+            print("\nFailed to retrieve documents or no documents found for the given query and processo.")
+            print("Ensure data for the specified processo_id exists in your ChromaDB collection and the indexer was run.")
+
+    print("\n" + "="*60 + "\n") 

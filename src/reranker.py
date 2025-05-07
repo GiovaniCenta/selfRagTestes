@@ -1,165 +1,100 @@
 import logging
-from sentence_transformers.cross_encoder import CrossEncoder
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Optional
+from sentence_transformers import CrossEncoder
 import torch
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - RERANKER - %(levelname)s - %(message)s')
 
-# --- Constants ---
-# You can choose base or large. Base is smaller and faster.
-# RERANKER_MODEL_ID = "BAAI/bge-reranker-large"
-RERANKER_MODEL_ID = "BAAI/bge-reranker-base"
-RERANKER_SCORE_THRESHOLD = 0.05 # Default threshold for relevance after rerank
-RERANKER_SELECT_TOP_N = 5      # Default number of top chunks to select after rerank
+# --- Constants --- 
+CROSS_ENCODER_MODEL_NAME = "rufimelo/Legal-BERTimbau-sts-large"
 
-# --- Cached Model ---
-_reranker_model_instance: Optional[CrossEncoder] = None
+# --- Cached Model Instance --- 
+_cross_encoder_instance: Optional[CrossEncoder] = None
 
-def load_reranker_model(model_id: str = RERANKER_MODEL_ID) -> CrossEncoder:
-    """Loads and caches the CrossEncoder reranker model."""
-    global _reranker_model_instance
+def get_cross_encoder_model(model_name: str = CROSS_ENCODER_MODEL_NAME) -> CrossEncoder:
+    """Loads or returns the cached CrossEncoder model."""
+    global _cross_encoder_instance
+    if _cross_encoder_instance is None:
+        logging.info(f"Loading CrossEncoder model: {model_name}")
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        # max_length for CrossEncoder is important for context handling
+        _cross_encoder_instance = CrossEncoder(model_name, max_length=512, device=device)
+        logging.info(f"CrossEncoder model loaded on device: {device}")
+    return _cross_encoder_instance
 
-    if _reranker_model_instance is not None:
-        logging.debug("Returning cached reranker model.")
-        return _reranker_model_instance
-
-    logging.info(f"Loading reranker model: {model_id}")
-    try:
-        # Force reranker onto CPU to save VRAM for main LLM
-        device = 'cpu'
-        logging.info(f"Using device: {device} for reranker model")
-
-        # max_length can be adjusted based on typical query+chunk length if needed
-        _reranker_model_instance = CrossEncoder(model_id, max_length=512, device=device)
-        logging.info("Reranker model loaded successfully.")
-        return _reranker_model_instance
-    except Exception as e:
-        logging.error(f"Failed to load reranker model '{model_id}': {e}", exc_info=True)
-        raise RuntimeError(f"Failed to load reranker model: {e}") from e
-
-def rerank_chunks(
-    query_claim: str,
-    chunks: List[Dict[str, Any]],
-    model_id: str = RERANKER_MODEL_ID
-) -> List[Dict[str, Any]]:
-    """Reranks a list of chunks based on their relevance to query claim using CrossEncoder.
+def rank(query: str, docs: List[Dict], n: int = 5) -> List[Dict]:
+    """
+    Reranks a list of documents based on their relevance to a query using a CrossEncoder model.
+    Expects documents to have a 'text' field.
 
     Args:
-        query_claim: The query text (claim).
-        chunks: A list of dictionaries, where each dictionary represents a chunk
-                and must contain at least 'text' key. Other keys like 'metadata',
-                'distance' from initial retrieval will be preserved.
-        model_id: The Hugging Face ID of CrossEncoder model to use.
+        query: The query string.
+        docs: A list of document dictionaries, each containing at least a 'text' field.
+        n: The number of top documents to return.
 
     Returns:
-        A new list of input chunk dictionaries, sorted by reranker score
-        in descending order (most relevant first). Each dictionary will have
-        new key 'rerank_score' added.
-        Returns empty list if input chunks are empty or reranking fails.
+        A list of the top N documents, sorted by reranked score in descending order.
+        Each document dictionary will have an added 'reranker_score' field.
+        Returns an empty list if an error occurs or no documents are provided.
     """
-    if not query_claim or not chunks:
-        logging.warning("Received empty query or chunks for reranking. Returning empty list.")
+    if not query or not docs:
+        logging.warning("Query and documents list must be provided for reranking.")
         return []
 
     try:
-        # Load reranker model (uses cache)
-        model = load_reranker_model(model_id)
+        cross_encoder = get_cross_encoder_model()
+        
+        # Prepare pairs for the CrossEncoder: (query, doc_text)
+        sentence_pairs = [(query, doc.get('text', '')) for doc in docs]
+        
+        if not sentence_pairs:
+            logging.warning("No text found in provided documents for reranking.")
+            return []
 
-        # Prepare pairs for model
-        chunk_texts = [chunk.get('text', '') for chunk in chunks]
-        sentence_pairs = [[query_claim, chunk_text] for chunk_text in chunk_texts]
+        logging.info(f"Reranking {len(sentence_pairs)} documents with CrossEncoder...")
+        # The CrossEncoder predict method returns scores directly
+        scores = cross_encoder.predict(sentence_pairs, show_progress_bar=True)
+        logging.info("Reranking complete.")
 
-        # Compute scores
-        logging.info(f"Computing rerank scores for {len(sentence_pairs)} pairs...")
-        scores = model.predict(sentence_pairs, show_progress_bar=False)
-        logging.info("Rerank scores computed.")
-
-        # Add scores to chunks and handle potential errors
-        if len(scores) != len(chunks):
-             logging.error(f"Mismatch between number of scores ({len(scores)}) and chunks ({len(chunks)}). Aborting rerank.")
-             # Optionally return original chunks or raise error
-             return [] # Return empty to signal failure clearly
-
-        chunks_with_scores = []
-        for i, chunk in enumerate(chunks):
-            # Create copy to avoid modifying original input list directly if passed around
-            chunk_copy = chunk.copy()
-            chunk_copy['rerank_score'] = float(scores[i]) # Ensure score is float
-            chunks_with_scores.append(chunk_copy)
-
-        # Sort chunks by score (descending)
-        chunks_with_scores.sort(key=lambda x: x['rerank_score'], reverse=True)
-
-        return chunks_with_scores
+        # Add scores to documents and sort
+        for doc, score in zip(docs, scores):
+            doc['reranker_score'] = float(score) # Ensure score is float
+        
+        # Sort documents by reranker_score in descending order
+        ranked_docs = sorted(docs, key=lambda x: x.get('reranker_score', 0.0), reverse=True)
+        
+        top_n_docs = ranked_docs[:n]
+        logging.info(f"Returning top {len(top_n_docs)} reranked documents.")
+        
+        return top_n_docs
 
     except Exception as e:
-        logging.error(f"An unexpected error occurred during reranking: {e}", exc_info=True)
-        return [] # Return empty on error
+        logging.error(f"Failed to rerank documents for query '{query[:50]}...': {e}", exc_info=True)
+        return []
 
-# --- Example Usage Block (for direct testing) ---
-if __name__ == "__main__":
-    print("\n" + "="*20 + " Running reranker.py Direct Execution Test " + "="*20)
-
-    # --- Dummy Data (Simulating retriever output) ---
-    sample_query = "Qual o impacto da decisão no teto remuneratório?"
-    sample_chunks_data = [
-        {
-            'text': "O tribunal decidiu que o teto se aplica imediatamente a todos os empregados.",
-            'metadata': {'source': 'docA', 'page': 5},
-            'distance': 0.2 # Example distance from initial retrieval
-        },
-        {
-            'text': "A análise considerou os argumentos das partes sobre a natureza da empresa.",
-            'metadata': {'source': 'docA', 'page': 4},
-            'distance': 0.3
-        },
-        {
-            'text': "O impacto financeiro da aplicação do teto foi discutido na seção V.",
-            'metadata': {'source': 'docA', 'page': 12},
-            'distance': 0.15
-        },
-        {
-            'text': "Não houve menção explícita ao teto remuneratório neste parágrafo sobre contratos.",
-            'metadata': {'source': 'docA', 'page': 8},
-            'distance': 0.4
-        }
+# Example (for testing if run directly)
+if __name__ == '__main__':
+    test_query = "princípio da insignificância em crimes de furto"
+    test_docs_from_retriever = [
+        {"id": "doc1", "processo": "111-2024", "text": "O princípio da insignificância aplica-se a crimes de furto quando o valor do bem é ínfimo.", "SimilarityScore": 0.8},
+        {"id": "doc2", "processo": "111-2024", "text": "A jurisprudência do STF sobre o princípio da insignificância é vasta.", "SimilarityScore": 0.75},
+        {"id": "doc3", "processo": "111-2024", "text": "Contratos administrativos e suas cláusulas exorbitantes.", "SimilarityScore": 0.3},
+        {"id": "doc4", "processo": "111-2024", "text": "O furto qualificado não admite, em regra, o princípio da insignificância.", "SimilarityScore": 0.85},
+        {"id": "doc5", "processo": "111-2024", "text": "Para a aplicação do princípio da insignificância, analisa-se o desvalor da conduta e do resultado.", "SimilarityScore": 0.78},
+        {"id": "doc6", "processo": "111-2024", "text": "Recurso especial sobre matéria constitucional não é cabível.", "SimilarityScore": 0.2}
     ]
 
-    print(f'Test Query: "{sample_query}"')
-    print(f"Input Chunks (Count: {len(sample_chunks_data)}):")
-    for i, chunk in enumerate(sample_chunks_data):
-         print(f"  Chunk {i+1}: '{chunk['text'][:50].replace(chr(10), ' ')}...' (Dist: {chunk.get('distance', 'N/A')})")
-    print("-" * 20)
+    print(f"Testing reranker with query: '{test_query}'")
+    print(f"Original number of docs: {len(test_docs_from_retriever)}")
 
-    try:
-        # --- Run Reranking ---
-        # The first time this runs, it will load the reranker model (can take time)
-        reranked_results = rerank_chunks(sample_query, sample_chunks_data)
+    top_reranked_docs = rank(test_query, test_docs_from_retriever, n=3)
 
-    except RuntimeError as e:
-         print(f"RUNTIME ERROR during test: {e}")
-         print("This might be an model loading failure. Check logs.")
-    except Exception as e:
-        print(f"An unexpected error occurred during the test: {e}")
-        reranked_results = [] # Ensure it's defined for printing
-
-
-    # --- Print Result ---
-    print("-" * 20)
-    if reranked_results:
-        print("--- Reranked Results (Sorted by Relevance) ---")
-        for i, chunk in enumerate(reranked_results):
-             print(f"Rank {i+1}: Score={chunk['rerank_score']:.4f}")
-             print(f"  Text: '{chunk['text'][:80].replace(chr(10), ' ')}...'")
-             print(f"  Original Distance: {chunk.get('distance', 'N/A')}")
-             print(f"  Metadata: {chunk.get('metadata', {})}")
-             print("--")
-    elif sample_chunks_data: # Check if input was not empty
-        print("--- Reranking FAILED ---")
-        print("Check logs above for errors.")
+    if top_reranked_docs:
+        print(f"\nTop {len(top_reranked_docs)} reranked documents:")
+        for i, doc in enumerate(top_reranked_docs):
+            print(f"  Rank {i+1}: ID={doc['id']}, Reranker Score={doc['reranker_score']:.4f}")
+            print(f"    Original Score: {doc.get('SimilarityScore', 'N/A')}")
+            print(f"    Text: {doc['text'][:100]}...")
     else:
-        print("--- Reranking Skipped (No input) ---")
-
-
-    print("\n" + "="*20 + " End of reranker.py Direct Execution Test " + "="*20) 
+        print("\nFailed to rerank documents or no documents returned.") 

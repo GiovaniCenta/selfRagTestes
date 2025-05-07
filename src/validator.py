@@ -97,7 +97,7 @@ def load_llm_model_and_tokenizer(
 
 def _format_validation_prompt(claim: str, context_chunks: List[str]) -> str:
     """
-    Formats prompt for Gemma Instruct model to validate claim based on context.
+    Formats prompt for Mixtral Instruct model to validate claim based on context.
 
     Args:
         claim: The claim text from the summary.
@@ -106,29 +106,37 @@ def _format_validation_prompt(claim: str, context_chunks: List[str]) -> str:
     Returns:
         The formatted prompt string.
     """
-    context_str = "\\n\\n".join(f"Trecho {i+1}:\\n{chunk}" for i, chunk in enumerate(context_chunks))
+    context_str = "\\\\n\\\\n".join(f"Trecho {i+1}:\\\\n{chunk}" for i, chunk in enumerate(context_chunks))
 
-    user_message = f"""Você é um assistente de IA altamente preciso e literal, especializado em validar afirmações em documentos jurídicos do TCU. Sua tarefa é determinar se uma 'Alegação' é 'Correta' ou 'Incorreta' baseando-se *única, exclusiva e estritamente* nas informações contidas nos 'Trechos do Documento Original' fornecidos.
+    user_content = f\"\"\"Você é um assistente de IA especialista em análise de documentos jurídicos do TCU. Sua tarefa é avaliar se a 'Alegação' fornecida é 'Correta' ou 'Incorreta' com base *apenas e estritamente* nos 'Trechos do Documento Original' que acompanham a alegação.
 
-**REGRAS ABSOLUTAS (Siga-as Implacavelmente):**
-1.  **NÃO USE CONHECIMENTO EXTERNO.** Sua análise deve ser 100% baseada nos trechos fornecidos.
-2.  **NÃO FAÇA INFERÊNCIAS OU SUPOSIÇÕES.** Se a informação não está explicitamente declarada nos trechos, ela não existe para esta tarefa.
-3.  **SEJA LITERAL.** Compare a alegação com os trechos palavra por palavra, significado por significado.
-4.  **PARA SER 'Correta',** TODAS as partes da alegação devem ser explicitamente confirmadas por um ou mais trechos. Se qualquer parte da alegação não for explicitamente confirmada, ela é 'Incorreta'.
-5.  **PARA SER 'Incorreta',** UMA OU MAIS das seguintes condições devem ser verdadeiras:
-    a.  Um ou mais trechos contradizem diretamente a alegação.
-    b.  Os trechos fornecidos NÃO CONTÊM informação suficiente para confirmar a alegação (mesmo que não a contradigam diretamente).
+**Instruções Gerais:**
+1.  **Foco no Contexto:** Sua decisão deve ser 100% baseada nos 'Trechos do Documento Original'. Não utilize conhecimento externo ou informações que não estejam presentes nesses trechos.
+2.  **Sem Suposições:** Não faça inferências que vão além do que está explicitamente declarado ou fortemente implicado pelos trechos.
+3.  **Essência da Alegação:** Concentre-se em determinar se a afirmação principal ou a essência da 'Alegação' é validada pelos trechos.
 
-**PROCESSO DE ANÁLISE INTERNO (Use para guiar seu raciocínio, NÃO inclua no output final - apenas pense nesses passos):**
-    A. Leia a 'Alegação' cuidadosamente. Identifique cada fato ou afirmação individual nela contida.
-    B. Para CADA fato/afirmação na alegação:
-        i.  Examine TODOS os 'Trechos do Documento Original'.
-        ii. Procure por uma declaração explícita que CONFIRME este fato/afirmação.
-        iii.Procure por uma declaração explícita que CONTRADIGA este fato/afirmação.
-    C. Avaliação Final (baseada no processo interno):
-        i.  Se TODOS os fatos/afirmações da alegação foram explicitamente CONFIRMADOS pelos trechos E NENHUM foi contradito, a alegação é 'Correta'.
-        ii. Se QUALQUER fato/afirmação da alegação foi explicitamente CONTRADITO pelos trechos, a alegação é 'Incorreta'.
-        iii.Se QUALQUER fato/afirmação da alegação NÃO PODE SER CONFIRMADO (ou seja, a informação está AUSENTE nos trechos), a alegação é 'Incorreta'.
+**Como Avaliar e Responder:**
+
+*   **Para classificar como 'Correta':**
+    *   A afirmação principal da 'Alegação' deve ser claramente suportada pelos 'Trechos do Documento Original'.
+    *   Não deve haver contradições diretas entre a 'Alegação' e os 'Trechos do Documento Original' em relação aos seus pontos chave.
+    *   Pequenas variações de redação entre a alegação e o texto de suporte são aceitáveis, desde que o significado central seja o mesmo.
+    *   **Justificativa para 'Correta':** Mencione qual(is) trecho(s) suporta(m) a alegação e explique brevemente como. Ex: "O Trecho X confirma que [aspecto da alegação]."
+
+*   **Para classificar como 'Incorreta':**
+    *   Um ou mais pontos chave da 'Alegação' são diretamente contraditos por informações nos 'Trechos do Documento Original'.
+    *   OU, os 'Trechos do Documento Original' não fornecem informações suficientes para confirmar a afirmação principal da 'Alegação'.
+    *   **Justificativa para 'Incorreta' (Contradição):** Mencione qual(is) trecho(s) contradiz(em) a alegação e explique brevemente. Ex: "O Trecho Y contradiz a alegação ao afirmar que [informação contrastante]."
+    *   **Justificativa para 'Incorreta' (Ausência de Informação):** Indique que a informação essencial para validar a alegação não foi encontrada nos trechos. Ex: "Os trechos fornecidos não contêm informação sobre [aspecto específico da alegação não encontrado]."
+
+**Exemplo de Alegação:**
+"O contrato foi assinado em 2023 e previa a entrega de 50 computadores."
+
+**Exemplos de Avaliação com Base em Trechos Hipotéticos:**
+*   Se um trecho diz "O acordo celebrado em 2023 estipulava o fornecimento de cinquenta computadores.", a alegação seria 'Correta'.
+*   Se um trecho diz "O contrato, firmado em 2022, previa a entrega de 50 computadores.", a alegação seria 'Incorreta' (contradição na data).
+*   Se um trecho diz "O contrato previa a entrega de 50 computadores.", mas não menciona o ano, a alegação (considerando o ano como parte chave) seria 'Incorreta' (ausência de informação sobre o ano).
+*   Se um trecho diz "O contrato foi assinado em 2023.", mas não menciona a quantidade de computadores, a alegação seria 'Incorreta' (ausência de informação sobre a quantidade).
 
 **Trechos do Documento Original:**
 {context_str}
@@ -136,22 +144,21 @@ def _format_validation_prompt(claim: str, context_chunks: List[str]) -> str:
 **Alegação a ser validada:**
 {claim}
 
-**FORMATO DE SAÍDA OBRIGATÓRIO E FINAL (NÃO inclua NADA MAIS em sua resposta, apenas estas duas linhas):**
+**FORMATO DE SAÍDA OBRIGATÓRIO (Responda APENAS com as duas linhas abaixo, exatamente neste formato):**
 Resultado: [Correta/Incorreta]
-Justificativa: [Se 'Correta': "A alegação é confirmada pelo(s) Trecho(s) X, Y, que afirmam [citação relevante ou paráfrase muito próxima]." OU Se 'Incorreta' por contradição: "A alegação é contradita pelo(s) Trecho(s) X, Y, que afirmam [citação relevante ou paráfrase]." OU Se 'Incorreta' por ausência de informação: "A informação necessária para confirmar '[parte específica da alegação]' não foi encontrada nos trechos fornecidos."
-]"""
+Justificativa: [Sua explicação concisa, seguindo as diretrizes acima.]\"\"\"
 
-    # Combine into final prompt format for Gemma
-    prompt = f"<start_of_turn>user\\n{user_message.strip()}<end_of_turn>\\n<start_of_turn>model\\n"
-
+    # Mixtral Instruct format: <s> [INST] User Prompt [/INST] Model will generate from here.
+    prompt = f"<s>[INST] {user_content.strip()} [/INST]"
+    # The model should now generate "Resultado: ..." itself.
     return prompt
 
 
 def validate_claim_with_llm(
     query_claim: str,
     retrieved_chunks: Dict[str, Any],
-    max_new_tokens: int = 150, # Increased from 100
-    temperature: float = 0.1, # Lower temperature for more deterministic output
+    max_new_tokens: int = 200,
+    temperature: float = 0.01,
 ) -> Optional[Dict[str, Any]]:
     """
     Validates claim using LLM based on retrieved context chunks.
@@ -208,15 +215,17 @@ def validate_claim_with_llm(
         with torch.no_grad(): # Inference dont need gradient calculation
             outputs = model.generate(**inputs, **generation_args)
 
-        # Decode the generated part
+        # Decode only the newly generated tokens
         generated_ids = outputs[0][inputs['input_ids'].shape[1]:]
         llm_response_text = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
+
+        # LLM is now expected to generate "Resultado: ..." itself.
+        # We no longer prepend "Resultado: " to llm_response_text.
+
         output_token_count = len(generated_ids)
         logging.debug(f"Output tokens: {output_token_count}")
-
         logging.info(f"LLM Raw Response: {llm_response_text}")
 
-        # Parse the response (Revised Logic)
         result_dict = {
             "Resultado": "Erro",
             "Justificativa": "Falha ao parsear resposta do LLM.",
@@ -224,14 +233,15 @@ def validate_claim_with_llm(
             "output_tokens": output_token_count
         }
 
-        # Use regex to find Resultado, ignore markdown and case for Correta/Incorreta
-        # Make regex more robust: handles optional bolding of "Resultado", more whitespace, case-insensitive "Resultado", multiline
-        match_resultado = re.search(r"^\s*\*?\s*Resultado\s*:\s*\*?\s*([Cc]orreta|[Ii]ncorreta)\*?", 
-                                    llm_response_text, 
-                                    re.IGNORECASE | re.MULTILINE)
+        # It looks for "Resultado" (case-insensitive) followed by ":"
+        # then captures "Correta" or "Incorreta" (case-insensitive).
+        match_resultado = re.search(
+            r"^\s*Resultado\s*:\s*([Cc]orreta|[Ii]ncorreta)", # Greatly simplified regex
+            llm_response_text,
+            re.IGNORECASE | re.MULTILINE
+        )
 
         if match_resultado:
-            # Normalize to capitalize first letter only (e.g., "Correta" or "Incorreta")
             parsed_status = match_resultado.group(1).strip().capitalize()
             if parsed_status in ["Correta", "Incorreta"]:
                 result_dict["Resultado"] = parsed_status

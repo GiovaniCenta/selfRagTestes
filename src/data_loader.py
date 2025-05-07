@@ -4,11 +4,38 @@ import logging
 import re # Import regex module
 from typing import List, Tuple, Union, Dict, Optional, Any
 import nltk # Added NLTK
+from sentence_transformers import SentenceTransformer
+import PyPDF2
+import torch
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - LOADER - %(levelname)s - %(message)s')
 
-# --- NLTK Resource Download --- (Added section)
+# --- Constants --- 
+# Updated Model Name
+MODEL_NAME = "rufimelo/Legal-BERTimbau-sts-large"
+
+# --- Cached Model Instance --- 
+_embedder_instance: Optional[SentenceTransformer] = None
+
+def get_embedding_model(model_name: str = MODEL_NAME) -> SentenceTransformer:
+    """Loads or returns the cached SentenceTransformer model."""
+    global _embedder_instance
+    if _embedder_instance is None:
+        logging.info(f"Loading embedding model: {model_name}")
+        # Consider adding trust_remote_code=True if needed for this specific model
+        _embedder_instance = SentenceTransformer(model_name, device='cuda' if torch.cuda.is_available() else 'cpu')
+        logging.info(f"Embedding model loaded on device: {_embedder_instance.device}")
+    return _embedder_instance
+
+def _extract_processo_from_filename(filename: str) -> Optional[str]:
+    """Extracts 'NNN-YYYY' pattern from filename if possible."""
+    match = re.search(r'(\d+)[-_](\d{4})', filename)
+    if match:
+        return f"{match.group(1)}-{match.group(2)}"
+    logging.warning(f"Could not extract 'processo' (NNN-YYYY) from filename: {filename}")
+    return None
+
 def _ensure_nltk_punkt():
     """Ensures that the NLTK 'punkt' resource is available."""
     try:
@@ -252,6 +279,83 @@ def load_and_prepare_data(acordao_path: str, resumo_path: str) -> tuple[list[dic
 
     return acordao_chunks_structured, resumo_claims_structured
 
+def pdf_to_docs(pdf_path: str) -> List[Dict]:
+    """
+    Reads a PDF, splits it into paragraphs, generates normalized embeddings,
+    and returns a list of dictionaries suitable for indexing.
+
+    Args:
+        pdf_path: Path to the PDF file.
+
+    Returns:
+        List of dictionaries, each with {'id', 'processo', 'text', 'vector'}.
+        Returns an empty list if the PDF cannot be read or processed.
+    """
+    docs = []
+    try:
+        logging.info(f"Reading PDF: {pdf_path}")
+        reader = PyPDF2.PdfReader(pdf_path)
+        num_pages = len(reader.pages)
+        logging.info(f"PDF has {num_pages} pages.")
+
+        paragraphs = []
+        for i, page in enumerate(reader.pages):
+            try:
+                page_text = page.extract_text()
+                if page_text:
+                    # Simple split by double newline, then filter empty strings
+                    page_paragraphs = [p.strip() for p in re.split(r'\n\s*\n', page_text) if p.strip()]
+                    # Alternative: more robust paragraph splitting if needed
+                    paragraphs.extend([(i + 1, para) for para in page_paragraphs]) # Store page number too
+            except Exception as page_err:
+                logging.warning(f"Could not extract text from page {i+1} of {pdf_path}: {page_err}")
+                continue # Skip page on error
+
+        if not paragraphs:
+            logging.warning(f"No text paragraphs extracted from PDF: {pdf_path}")
+            return []
+
+        logging.info(f"Extracted {len(paragraphs)} paragraphs from PDF.")
+
+        # Extract 'processo' NNN-YYYY from filename
+        filename = os.path.basename(pdf_path)
+        processo_id = _extract_processo_from_filename(filename)
+        if not processo_id:
+            logging.error(f"Failed to determine 'processo' ID for {pdf_path}. Cannot proceed with embedding.")
+            return [] # Cannot index without processo_id
+
+        logging.info(f"Generating embeddings for {len(paragraphs)} paragraphs...")
+        embedder = get_embedding_model()
+        paragraph_texts = [text for _, text in paragraphs]
+        
+        # Generate embeddings with normalization
+        vectors = embedder.encode(
+            paragraph_texts, 
+            batch_size=32, # Adjust batch size based on VRAM
+            show_progress_bar=True, 
+            normalize_embeddings=True # Normalize embeddings as requested
+        )
+        logging.info("Embeddings generated.")
+
+        # Prepare documents for indexing
+        for idx, ((page_num, text), vector) in enumerate(zip(paragraphs, vectors)):
+            doc_id = f"{processo_id}_p{page_num}_idx{idx}" # Unique ID per paragraph
+            docs.append({
+                "id": doc_id,
+                "processo": processo_id, # Partition key
+                "text": text,
+                "vector": vector.tolist() # Convert numpy array to list for JSON serialization
+            })
+
+        logging.info(f"Prepared {len(docs)} documents with embeddings for {processo_id}.")
+        return docs
+
+    except FileNotFoundError:
+        logging.error(f"PDF file not found: {pdf_path}")
+        return []
+    except Exception as e:
+        logging.error(f"Failed to process PDF {pdf_path}: {e}", exc_info=True)
+        return []
 
 if __name__ == "__main__":
     # This block executes only when script run directly
