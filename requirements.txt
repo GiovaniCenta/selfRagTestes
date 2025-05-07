@@ -3,6 +3,7 @@
 # pypdf2 
 
 # Specified versions and new packages
+pypdf2
 sentence-transformers==2.7.0
 transformers
 torch 

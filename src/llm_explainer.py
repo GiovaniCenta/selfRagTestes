@@ -38,31 +38,36 @@ def load_explainer_model_and_tokenizer(
     try:
         # Configure 4-bit quantization (optional, adjust as needed)
         quantization_config = None
-        if torch.cuda.is_available():
-            quantization_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_compute_dtype=MODEL_TORCH_DTYPE, # BF16 or FP16
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_use_double_quant=True,
-            )
-            logging.info("Using 4-bit quantization for explainer model.")
-        else:
-            logging.info("CUDA not available, loading explainer model in full precision on CPU (may be slow).")
+        # --- REMOVING 4-BIT QUANTIZATION ---
+        # if torch.cuda.is_available():
+        #     quantization_config = BitsAndBytesConfig(
+        #         load_in_4bit=True,
+        #         bnb_4bit_compute_dtype=MODEL_TORCH_DTYPE, # BF16 or FP16
+        #         bnb_4bit_quant_type="nf4",
+        #         bnb_4bit_use_double_quant=True,
+        #     )
+        #     logging.info("Using 4-bit quantization for explainer model.")
+        # else:
+        #     logging.info("CUDA not available, loading explainer model in full precision on CPU (may be slow).")
+        logging.info(f"Loading explainer model in full precision ({MODEL_TORCH_DTYPE if device == 'cuda' else 'float32'}) on {device}.")
 
         model_kwargs = {
             "torch_dtype": MODEL_TORCH_DTYPE if device == 'cuda' else torch.float32,
             "low_cpu_mem_usage": True, # Useful for large models
             # "trust_remote_code": True, # if model requires it
         }
-        if quantization_config:
-            model_kwargs["quantization_config"] = quantization_config
-            model_kwargs["device_map"] = "auto" # Handles multi-GPU and CPU offloading
+        # --- REMOVING quantization_config and device_map from kwargs if they existed ---
+        # if quantization_config:
+        #     model_kwargs["quantization_config"] = quantization_config
+        #     model_kwargs["device_map"] = "auto" # Handles multi-GPU and CPU offloading
         # else, model will be loaded on CPU first, then moved if device='cuda' is specified
         
         logging.info(f"Loading model '{model_id}' with kwargs: {model_kwargs}")
-        model = AutoModelForCausalLM.from_pretrained(model_id, **model_kwargs)
+        # Load model directly, will be on CPU initially if not using device_map
+        model = AutoModelForCausalLM.from_pretrained(model_id, **model_kwargs) 
         
-        if not quantization_config and device == 'cuda': # If not quantized, move to GPU if available
+        # Move model to GPU if CUDA is available and we didn't use device_map='auto'
+        if device == 'cuda': 
              model = model.to(device)
 
         logging.info(f"Explainer model '{model_id}' loaded on device: {model.device if hasattr(model, 'device') else device}")
@@ -96,13 +101,19 @@ def _format_explanation_prompt(query: str, contexts: List[str]) -> str:
 
     # Updated Prompt for structured output + Language Instruction
     prompt = (
-        f"<s>[INST] Sua tarefa é analisar se os Parágrafos fornecidos abaixo contêm informações que confirmam ou contradizem a Afirmação.\n"
-        f"Primeiro, forneça seu veredito como 'Resultado: Correto' ou 'Resultado: Incorreto'.\n"
-        f"Depois, explique resumidamente (em até 3 frases) como os parágrafos se relacionam com a afirmação, indicando se eles a suportam, contradizem, ou se são insuficientes, na forma 'Justificativa: [sua explicação]'. \n"
-        f"Baseie-se *estritamente* nos parágrafos fornecidos.\n"
-        f"**Responda em português.**\n\n"
-        f"Afirmação: {query}\n\n"
-        f"Parágrafos:\n{context_str}\n\n"
+        f"<s>[INST] Sua tarefa é analisar o conjunto de Parágrafos fornecidos abaixo e determinar se eles, como um todo, confirmam ou contradizem a Afirmação dada.\\n"
+        f"Forneça um veredito ÚNICO para a Afirmação: 'Correto' ou 'Incorreto'.\\n"
+        f"Verifique CUIDADOSAMENTE se TODAS as partes da Afirmação são suportadas pelas informações nos Parágrafos.\\n"
+        f"- Use 'Correto' SOMENTE SE o conjunto de parágrafos CONTÉM informação que confirma CLARAMENTE TODAS as partes da Afirmação.\\n"
+        f"- Use 'Incorreto' SE QUALQUER parte da Afirmação for contradita pelos parágrafos OU SE a informação fornecida for insuficiente para confirmar TODAS as partes da Afirmação.\\n"
+        f"NÃO forneça vereditos separados para cada parágrafo.\\n"
+        f"Sua resposta DEVE OBRIGATORIAMENTE começar com a palavra 'Correto' ou 'Incorreto', seguida por um ponto final ('.') e uma nova linha.\\n"
+        f"Exemplo de início: Correto.\\n"
+        f"Exemplo de início: Incorreto.\\n"
+        f"Logo após o veredito e a nova linha, forneça uma justificativa curta (até 3 frases) na forma 'Justificativa: [sua explicação]', explicando sua decisão com base no conjunto de parágrafos.\\n"
+        f"**Responda em português.**\\n\\n"
+        f"Afirmação: {query}\\n\\n"
+        f"Parágrafos:\\n{context_str}\\n\\n"
         f"[/INST]Resultado: " # Model will continue from here
     )
     return prompt
@@ -150,55 +161,53 @@ def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, tem
         
         logging.info(f"LLM Raw Response for explanation: {llm_response_text}")
 
-        # Attempt to parse the structured output
+        # --- PRE-PROCESSING STEP --- 
+        # Attempt to remove common prefixes like "Parágrafo X:" or "Parágrafos X-Y:" that the model sometimes adds
+        cleaned_llm_response = re.sub(r"^Parágrafo[s]?\s*\d+(?:\s*a\s*\d+|\s*-\s*\d+)?[:.]?\s*", "", llm_response_text, flags=re.IGNORECASE).strip()
+        if cleaned_llm_response != llm_response_text:
+            logging.info(f"LLM Response after cleaning prefix: {cleaned_llm_response}")
+        # --- END PRE-PROCESSING --- 
+
+        # Attempt to parse the structured output FROM THE CLEANED RESPONSE
         # Example: "Correto\nJustificativa: A informação é confirmada pelo Parágrafo 1."
         # Example: "Incorreto\nJustificativa: Nenhum parágrafo confirma a afirmação."
 
         prediction = default_prediction
-        rationale = llm_response_text # Default to full response if parsing fails
+        rationale = cleaned_llm_response # Default to cleaned response if parsing fails
 
-        # Regex to capture "Resultado: <veredito>\nJustificativa: <texto>"
         # We added "Resultado: " to the prompt, so model starts generating the veredito.
-        # New regex: flexible for verdicts like "Ínsuficiente.", "Incorreto.", "Correto."
-        # It expects the model to output: <VERDICT_WORD>.\n\nJustificativa: <TEXT>
-        # because the prompt ends with "Resultado: "
-        match = re.search(r"^\s*([\wÀ-ú]+)\.?\s*[\n]*Justificativa:\s*(.*)", llm_response_text, re.DOTALL | re.IGNORECASE)
+        # Stricter regex, only accepts "Correto" or "Incorreto" (applied to cleaned_llm_response)
+        match = re.search(r"^\s*(Correto|Incorreto)\.?\s*[\n]*Justificativa:\s*(.*)", cleaned_llm_response, re.DOTALL | re.IGNORECASE)
 
         if match:
             extracted_verdict_word = match.group(1).strip().lower()
             extracted_rationale = match.group(2).strip()
 
-            # Map common Portuguese verdicts
-            if extracted_verdict_word == "correto" or extracted_verdict_word == "confere":
+            # Map common Portuguese verdicts - now much stricter
+            if extracted_verdict_word == "correto":
                 prediction = "Correto"
-            elif extracted_verdict_word == "incorreto" or extracted_verdict_word == "não confere":
+            elif extracted_verdict_word == "incorreto":
                 prediction = "Incorreto"
-            elif extracted_verdict_word == "insuficiente" or extracted_verdict_word == "indeterminado":
-                prediction = "Indeterminado"
+            # No other mappings accepted. If regex matched, it must be one of these.
+            # else clause for unmapped (but matched by regex) terms is effectively removed.
+            
+            # Ensure rationale is present if a valid prediction was made
+            if not extracted_rationale:
+                 rationale = f"Veredito '{prediction}' parseado, mas explicação não fornecida pelo LLM após a etiqueta 'Justificativa:'."
             else:
-                # If it's something else but looks like a prediction, keep it but log, or default to ERRO_DE_PARSING
-                logging.warning(f"LLM verdict word was '{extracted_verdict_word}', not directly mapped. Defaulting prediction or using as is if configured.")
-                # For now, let's consider it a parsing error if not explicitly mapped, 
-                # or you could assign prediction = extracted_verdict_word.capitalize()
-                prediction = default_prediction # Or prediction = extracted_verdict_word.capitalize() if you want to keep unmapped verdicts
-                if prediction == default_prediction:
-                     extracted_rationale = f"LLM usou um termo de veredito não mapeado ('{extracted_verdict_word}'). Resposta completa: {llm_response_text}"
-
-            rationale = extracted_rationale
-            if not rationale and prediction != default_prediction: # If rationale is empty after "Justificativa:" but verdict was parsed
-                rationale = f"Explicação não fornecida pelo LLM após a etiqueta 'Justificativa:' para o veredito '{prediction}'."
-            elif not rationale and prediction == default_prediction:
-                rationale = f"LLM não forneceu justificativa e o veredito ('{extracted_verdict_word}') não foi mapeado. Resposta: {llm_response_text}"
+                rationale = extracted_rationale
             
             logging.info(f"Parsed LLM Output: Verdict Word='{extracted_verdict_word}', Mapped Prediction='{prediction}', Rationale='{rationale[:100]}...'")
         else:
-            logging.warning(f"Could not parse LLM response starting with a verdict word and 'Justificativa:'. Raw response: '{llm_response_text}'")
-            # Rationale is already llm_response_text, prediction is default_prediction
-            rationale = f"LLM não seguiu o formato esperado (Veredito. Justificativa: ...). Resposta: {llm_response_text}"
+            logging.warning(f"Could not parse LLM response starting with 'Correto' or 'Incorreto' and 'Justificativa:'. Using cleaned response as rationale. Cleaned response: '{cleaned_llm_response}'")
+            # Prediction remains default_prediction ("ERRO_DE_PARSING")
+            # Use the cleaned response as the rationale for better error message
+            rationale = f"LLM não seguiu o formato esperado ('Correto' ou 'Incorreto'. Justificativa: ...). Resposta limpa: {cleaned_llm_response}" 
+            # Update the rationale to use the cleaned response for clarity if parsing failed
 
-
-        if not rationale and prediction == default_prediction: # If both are still defaults, e.g. empty LLM response
-             rationale = "A explicação gerada pelo LLM estava vazia ou não foi parseada."
+        # Fallback rationale if everything else failed (e.g., completely empty response)
+        if not rationale and prediction == default_prediction: 
+            rationale = "A explicação gerada pelo LLM estava vazia ou não foi parseada."
             
         return prediction, rationale
 
