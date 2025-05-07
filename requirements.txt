@@ -4,8 +4,9 @@
 
 # Specified versions and new packages
 sentence-transformers==2.7.0
-transformers==4.41.0
+transformers
 torch 
+torchvision 
 bitsandbytes 
 peft
 accelerate
@@ -13,7 +14,6 @@ chromadb
 scikit-learn
 python-dotenv
 streamlit # Keep if app.py is still relevant
-peft
 
 # Reranker specific (implicitly needed by sentence-transformers)
 # huggingface_hub 

@@ -135,13 +135,14 @@ def classify(query: str, text: str) -> Tuple[str, float]:
         logging.debug(f"Classifying query: '{query[:50]}...' with text: '{text[:100]}...'")
         
         # Prepare input for sequence classification (query, text pair)
+        # Explicitly set max_length to 512 to avoid potential OverflowError
         inputs = tokenizer(
             query, 
             text, 
             return_tensors="pt", 
-            truncation=True, # Truncate to model max length
-            padding=True, # Pad to max length in batch (or model max_length if single)
-            max_length=tokenizer.model_max_length # Typically 512 for BERT-like models
+            truncation=True, 
+            padding=True, 
+            max_length=512 # Explicitly set a safe max_length
         ).to(device)
 
         with torch.no_grad():
@@ -149,7 +150,8 @@ def classify(query: str, text: str) -> Tuple[str, float]:
             logits = outputs.logits
         
         # Apply softmax to get probabilities
-        probabilities = torch.softmax(logits, dim=-1).cpu().numpy()[0]
+        # Convert to float32 before CPU/NumPy conversion as NumPy doesn't support bfloat16
+        probabilities = torch.softmax(logits, dim=-1).to(torch.float32).cpu().numpy()[0]
         
         predicted_class_id = np.argmax(probabilities)
         predicted_label = model.config.id2label[predicted_class_id]

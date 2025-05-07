@@ -2,12 +2,14 @@ import logging
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from typing import List, Optional, Tuple
+import re # Added import for regex in explain function
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - EXPLAINER - %(levelname)s - %(message)s')
 
 # --- Constants --- 
-LLM_EXPLAINER_MODEL_ID = "cnmoro/Mistral-7B-Portuguese-Instruct" # Mistral-7B-Instruct-v0.1 based
+# Updated Model ID to official Mistral Instruct v0.2
+LLM_EXPLAINER_MODEL_ID = "mistralai/Mistral-7B-Instruct-v0.2" 
 # Ensure this matches your available hardware and desired precision
 # For BF16, CUDA compute capability >= 8.0 (Ampere) is typically needed.
 # If not available, it might fall back or you might need torch.float16.
@@ -85,37 +87,38 @@ def load_explainer_model_and_tokenizer(
 
 def _format_explanation_prompt(query: str, contexts: List[str]) -> str:
     """
-    Formats the prompt for the Mistral-Instruct model to generate an explanation.
-    The prompt instructs the model to explain if paragraphs confirm the affirmation,
-    and *then* state CONFERE/NÃO CONFERE. The `explain` function should extract the rationale.
+    Formats the prompt for the Mistral-Instruct model to generate a prediction and an explanation.
+    Instructs the model to respond in Portuguese with a specific format.
     """
     context_str = "\n\n".join(f"Parágrafo {i+1}:\n{chunk}" for i, chunk in enumerate(contexts) if chunk.strip())
     if not context_str:
         context_str = "Nenhum parágrafo de contexto foi fornecido."
 
-    # Mistral Instruct template: <s>[INST] User Query [/INST] Model Answer</s>
-    # The user query is the full instruction set.
-    prompt = f"<s>[INST] Explique em até 3 frases se os parágrafos abaixo CONFIRMAM a afirmação e, em seguida, responda apenas CONFERE ou NÃO CONFERE.\n\nAfirmação: {query}\n\nParágrafos:\n{context_str}\n\n[/INST]"
+    # Updated Prompt for structured output + Language Instruction
+    prompt = (
+        f"<s>[INST] Sua tarefa é analisar se os Parágrafos fornecidos abaixo contêm informações que confirmam ou contradizem a Afirmação.\n"
+        f"Primeiro, forneça seu veredito como 'Resultado: Correto' ou 'Resultado: Incorreto'.\n"
+        f"Depois, explique resumidamente (em até 3 frases) como os parágrafos se relacionam com a afirmação, indicando se eles a suportam, contradizem, ou se são insuficientes, na forma 'Justificativa: [sua explicação]'. \n"
+        f"Baseie-se *estritamente* nos parágrafos fornecidos.\n"
+        f"**Responda em português.**\n\n"
+        f"Afirmação: {query}\n\n"
+        f"Parágrafos:\n{context_str}\n\n"
+        f"[/INST]Resultado: " # Model will continue from here
+    )
     return prompt
 
-def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, temperature: float = 0.1) -> str:
+def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, temperature: float = 0.1) -> Tuple[str, str]:
     """
-    Generates a short rationale explaining whether the provided texts support the query.
-    Uses the Mistral-7B-Portuguese-Instruct model.
-
-    Args:
-        query: The query or claim string.
-        list_of_texts: A list of text strings (e.g., top N reranked document chunks).
-        max_new_tokens: Max new tokens for the LLM to generate for the explanation.
-        temperature: Temperature for LLM generation (lower for more factual).
-
-    Returns:
-        A string containing the generated rationale (explanation part).
-        Returns a default error message if generation fails or output is unexpected.
+    Generates a prediction ("Correto", "Incorreto", or "ERRO_DE_PARSING") and a rationale
+    explaining whether the provided texts support the query.
+    Uses the Mistral-7B-Instruct model.
     """
+    default_prediction = "ERRO_DE_PARSING"
+    default_rationale = "Não foi possível gerar a explicação ou parsear o resultado do LLM."
+
     if not query or not list_of_texts:
         logging.warning("Query and list_of_texts must be provided for explanation.")
-        return "Não foi possível gerar a explicação: dados de entrada ausentes."
+        return default_prediction, "Dados de entrada ausentes para o LLM."
 
     try:
         model, tokenizer = load_explainer_model_and_tokenizer()
@@ -125,57 +128,70 @@ def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, tem
         logging.debug(f"Generated explanation prompt:\n{prompt_text}")
 
         inputs = tokenizer(prompt_text, return_tensors="pt", truncation=True, padding=False).to(device)
-        # Ensure input_ids does not exceed model max length (e.g., 4096 for some Mistral variants)
-        # This check is more for the prompt itself; max_new_tokens controls output length.
-        # if inputs.input_ids.shape[1] > tokenizer.model_max_length:
-        #     logging.warning(f"Prompt length ({inputs.input_ids.shape[1]}) exceeds model max length ({tokenizer.model_max_length}). Truncation might occur unexpectedly.")
-
-        # Generation parameters
+        
         generation_kwargs = {
             "max_new_tokens": max_new_tokens,
             "temperature": temperature,
-            "top_p": 0.9, # Sample from the smallest set of tokens whose cumulative probability exceeds top_p
-            "do_sample": True, # Required for temperature and top_p to have effect
-            "pad_token_id": tokenizer.eos_token_id, # Important for open-ended generation
-            "eos_token_id": tokenizer.eos_token_id
+            "top_p": 0.9,
+            "do_sample": True,
+            "pad_token_id": tokenizer.eos_token_id,
+            "eos_token_id": tokenizer.eos_token_id # Ensure this is correctly set
         }
         
         logging.info(f"Generating explanation with {LLM_EXPLAINER_MODEL_ID}...")
         with torch.no_grad():
+            # We expect the model to generate "Correto/Incorreto\nJustificativa: ..."
+            # We already added "Resultado: " to the prompt.
             output_ids = model.generate(**inputs, **generation_kwargs)
         
-        # Decode the generated tokens, skipping special tokens and the prompt part
-        # The output_ids will contain the prompt + generated text.
-        # We need to slice off the prompt part from the output.
         prompt_length = inputs.input_ids.shape[1]
         generated_text_ids = output_ids[0, prompt_length:]
         llm_response_text = tokenizer.decode(generated_text_ids, skip_special_tokens=True).strip()
         
         logging.info(f"LLM Raw Response for explanation: {llm_response_text}")
 
-        # The prompt asks for: "Explique... e, em seguida, responda apenas CONFERE ou NÃO CONFERE."
-        # We want to extract the explanation part before the final CONFERE/NÃO CONFERE.
-        # This can be tricky. A simple approach is to look for these keywords.
-        match_confere = re.search(r"(CONFERE|NÃO\s*CONFERE)$", llm_response_text, re.IGNORECASE | re.MULTILINE)
-        rationale = llm_response_text
-        if match_confere:
-            rationale = llm_response_text[:match_confere.start()].strip()
-            # If rationale is empty after stripping, it means LLM only gave CONFERE/NAO CONFERE
-            if not rationale:
-                rationale = f"O modelo indicou '{match_confere.group(1)}' mas não forneceu uma explicação textual detalhada antes disso." 
+        # Attempt to parse the structured output
+        # Example: "Correto\nJustificativa: A informação é confirmada pelo Parágrafo 1."
+        # Example: "Incorreto\nJustificativa: Nenhum parágrafo confirma a afirmação."
+
+        prediction = default_prediction
+        rationale = llm_response_text # Default to full response if parsing fails
+
+        # Regex to capture "Resultado: <veredito>\nJustificativa: <texto>"
+        # We added "Resultado: " to the prompt, so model starts generating the veredito.
+        match = re.search(r"^(Correto|Incorreto)\s*[\n]*Justificativa:\s*(.*)", llm_response_text, re.DOTALL | re.IGNORECASE)
+
+        if match:
+            extracted_prediction = match.group(1).strip()
+            extracted_rationale = match.group(2).strip()
+
+            if extracted_prediction.lower() == "correto":
+                prediction = "Correto"
+            elif extracted_prediction.lower() == "incorreto":
+                prediction = "Incorreto"
+            else:
+                # If it's something else but looks like a prediction, keep it but log
+                logging.warning(f"LLM prediction was '{extracted_prediction}', not exactly 'Correto' or 'Incorreto'. Using it as is.")
+                prediction = extracted_prediction # Or handle more strictly
+
+            rationale = extracted_rationale
+            if not rationale: # If rationale is empty after "Justificativa:"
+                rationale = "Explicação não fornecida pelo LLM após a etiqueta 'Justificativa:'."
+            logging.info(f"Parsed LLM Output: Prediction='{prediction}', Rationale='{rationale[:100]}...'")
         else:
-            # If the keywords are not found at the end, the whole response might be the rationale
-            # or the LLM didn't follow the format. We'll take the whole response as is.
-            logging.warning("LLM did not strictly follow the CONFERE/NÃO CONFERE ending format. Using full response as rationale.")
-        
-        if not rationale.strip(): # Handle cases where rationale might become empty
-            rationale = "A explicação gerada pelo LLM estava vazia ou não seguiu o formato esperado."
+            logging.warning(f"Could not parse LLM response into 'Resultado' and 'Justificativa'. Raw response: '{llm_response_text}'")
+            # Rationale is already llm_response_text, prediction is default_prediction
+            rationale = f"LLM não seguiu o formato esperado. Resposta: {llm_response_text}"
+
+
+        if not rationale and prediction == default_prediction: # If both are still defaults
+             rationale = "A explicação gerada pelo LLM estava vazia ou não foi parseada."
             
-        return rationale
+        return prediction, rationale
 
     except Exception as e:
-        logging.error(f"Failed to generate explanation for query '{query[:50]}...': {e}", exc_info=True)
-        return f"Erro ao gerar explicação: {str(e)}"
+        logging.error(f"Failed to generate explanation for query \'{query[:50]}...\': {e}", exc_info=True)
+        return default_prediction, f"Erro ao gerar explicação: {str(e)}"
 
 # Example (for testing if run directly)
 if __name__ == '__main__':
@@ -192,12 +208,18 @@ if __name__ == '__main__':
     
     # First run will download and cache the model (can take time and VRAM)
     try:
-        explanation = explain(test_query, test_contexts)
-        print(f"Generated Explanation:\n---\n{explanation}\n---")
+        # Test Case 1
+        prediction, explanation = explain(test_query, test_contexts)
+        print(f"Test Case 1 - Query: {test_query}")
+        print(f"          Contexts: {test_contexts}")
+        print(f"  LLM Prediction: {prediction}")
+        print(f"  LLM Explanation:\n---\n{explanation}\n---\n")
         
         # Test with empty context
-        explanation_empty_ctx = explain(test_query, [])
-        print(f"\nGenerated Explanation (Empty Context):\n---\n{explanation_empty_ctx}\n---")
+        prediction_empty, explanation_empty_ctx = explain(test_query, [])
+        print(f"Test Case Empty Context - Query: {test_query}")
+        print(f"  LLM Prediction: {prediction_empty}")
+        print(f"  LLM Explanation (Empty Context):\n---\n{explanation_empty_ctx}\n---\n")
 
         # Test with more complex context
         test_query_2 = "A empresa pública deve seguir o teto remuneratório."
@@ -208,8 +230,11 @@ if __name__ == '__main__':
         ]
         print(f"\nTest Case 2 - Query: {test_query_2}")
         print(f"          Contexts: {test_contexts_2}\n")
-        explanation_2 = explain(test_query_2, test_contexts_2)
-        print(f"Generated Explanation:\n---\n{explanation_2}\n---")
+        prediction_2, explanation_2 = explain(test_query_2, test_contexts_2)
+        print(f"Test Case 2 - Query: {test_query_2}")
+        print(f"          Contexts: {test_contexts_2}")
+        print(f"  LLM Prediction: {prediction_2}")
+        print(f"  LLM Explanation:\n---\n{explanation_2}\n---\n")
 
     except RuntimeError as e:
         print(f"RUNTIME ERROR during llm_explainer.py test: {e}")

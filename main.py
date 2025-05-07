@@ -43,7 +43,9 @@ def save_summary_txt(all_claim_results, output_filepath, pdf_file_name, resumo_f
                 f.write(f"  Texto: {result['claim_text']}\n")
                 f.write(f"  Predição do Verificador: {result['predicted_label']}\n")
                 f.write(f"  Confiança: {result['confidence']:.4f}\n")
-                f.write(f"  Justificativa do LLM:\n    {result['rationale'].replace('\n', '\n    ')}\n")
+                # Correctly handle backslashes in f-string expression
+                justificativa_formatada = result['rationale'].replace('\n', '\n    ')
+                f.write(f"  Justificativa do LLM:\n    {justificativa_formatada}\n") # Removed trailing space and newline in f-string for cleaner output
                 f.write("-"*30 + "\n")
         logging.info(f"Resumo TXT salvo em: {output_filepath}")
     except Exception as e:
@@ -55,8 +57,9 @@ def save_results_csv(all_claim_results, output_filepath, processo_id):
         logging.warning("Nenhum resultado para salvar no CSV de resultados.")
         return
     try:
+        # Updated field names to reflect that this is the 'final' prediction
         fieldnames = ['ID_Claim_Resumo', 'Processo_ID', 'Sentenca_Claim', 
-                      'Prediction_Verificador', 'Confianca_Verificador']
+                      'Prediction_Final', 'Confianca_Final']
         with open(output_filepath, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
             writer.writeheader()
@@ -65,8 +68,8 @@ def save_results_csv(all_claim_results, output_filepath, processo_id):
                     'ID_Claim_Resumo': result['claim_id'],
                     'Processo_ID': processo_id,
                     'Sentenca_Claim': result['claim_text'],
-                    'Prediction_Verificador': result['predicted_label'],
-                    'Confianca_Verificador': f"{result['confidence']:.4f}" # Format as string for consistency
+                    'Prediction_Final': result['predicted_label'], # Changed from Prediction_Verificador
+                    'Confianca_Final': f"{result['confidence']:.4f}" # Changed from Confianca_Verificador
                 })
         logging.info(f"Resultados CSV salvos em: {output_filepath}")
     except Exception as e:
@@ -78,21 +81,27 @@ def save_justifications_csv(all_claim_results, output_filepath, processo_id):
         logging.warning("Nenhum resultado para salvar no CSV de justificativas.")
         return
     try:
+        # Added 'Classifier_Votes_Details' for more detailed output if needed
         fieldnames = ['ID_Claim_Resumo', 'Processo_ID', 'Sentenca_Claim', 
-                      'Prediction_Verificador', 'Justificativa_LLM', 'Contexto_Utilizado_LLM']
+                      'Prediction_Final', 'Confianca_Final', 'Justificativa_LLM_Ou_Classificador', 
+                      'Contexto_Utilizado_LLM', 'Detalhes_Votos_Classificador'] 
         with open(output_filepath, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
             writer.writeheader()
             for result in all_claim_results:
-                # Context used for explainer was stored as a list of strings
                 context_str = " [SEP_CONTEXTO] ".join(result.get('context_for_llm', []))
+                # Serialize classifier_votes_details for CSV if it exists
+                classifier_votes_str = str(result.get('classifier_votes', [])) # Simple string representation
+
                 writer.writerow({
                     'ID_Claim_Resumo': result['claim_id'],
                     'Processo_ID': processo_id,
                     'Sentenca_Claim': result['claim_text'],
-                    'Prediction_Verificador': result['predicted_label'],
-                    'Justificativa_LLM': result['rationale'],
-                    'Contexto_Utilizado_LLM': context_str
+                    'Prediction_Final': result['predicted_label'], # This is now the final prediction
+                    'Confianca_Final': f"{result['confidence']:.4f}",
+                    'Justificativa_LLM_Ou_Classificador': result['rationale'], # This contains LLM rationale or classifier unanimity message
+                    'Contexto_Utilizado_LLM': context_str,
+                    'Detalhes_Votos_Classificador': classifier_votes_str
                 })
         logging.info(f"Justificativas CSV salvas em: {output_filepath}")
     except Exception as e:
@@ -159,14 +168,17 @@ def run_rag_pipeline():
         return
     logging.info(f"Determined Processo ID from PDF: {processo_id_from_pdf}")
 
-    # Define output filenames based on processo_id if not provided
+    # Define output filenames based on processo_id or user args
     pdf_basename = os.path.basename(args.pdf_file)
     resumo_basename = os.path.basename(args.resumo_file)
+    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
-    txt_output_filename = args.txt_output_file if args.txt_output_file else f"{processo_id_from_pdf}_summary_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt"
-    csv_results_filename = args.csv_results_file if args.csv_results_file else f"{processo_id_from_pdf}_resultados_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
-    csv_justifications_filename = args.csv_justifications_file if args.csv_justifications_file else f"{processo_id_from_pdf}_justificativas_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
+    # Use os.path.basename on user-provided filenames to prevent duplication
+    txt_output_filename = os.path.basename(args.txt_output_file) if args.txt_output_file else f"{processo_id_from_pdf}_summary_{timestamp}.txt"
+    csv_results_filename = os.path.basename(args.csv_results_file) if args.csv_results_file else f"{processo_id_from_pdf}_resultados_{timestamp}.csv"
+    csv_justifications_filename = os.path.basename(args.csv_justifications_file) if args.csv_justifications_file else f"{processo_id_from_pdf}_justificativas_{timestamp}.csv"
 
+    # Join the potentially stripped filename with the guaranteed output directory
     full_txt_path = os.path.join(output_directory, txt_output_filename)
     full_csv_results_path = os.path.join(output_directory, csv_results_filename)
     full_csv_justifications_path = os.path.join(output_directory, csv_justifications_filename)
@@ -206,11 +218,13 @@ def run_rag_pipeline():
         claim_id = i + 1
         logging.info(f"\nProcessing Claim {claim_id}/{len(claims_from_resumo)}: '{current_query_claim[:100]}...'")
         
-        # Initialize default values for this claim's results
-        predicted_label = "ERRO"
-        probability = 0.0
-        rationale = "Processamento não concluído ou falhou antes da geração da justificativa."
-        context_for_llm = []
+        # Initialize final results for the claim
+        final_predicted_label = "ERRO"
+        final_confidence = 0.0
+        final_rationale = "Processamento não concluído ou falhou."
+        context_for_llm = [] # Context actually used by LLM (if called)
+        classifier_votes_details = [] # To store (label, score) for each classifier vote
+        skip_llm = False
 
         # --- 3. Retrieve candidate documents for the current claim --- 
         logging.info(f"Step 3 (Claim {claim_id}): Retrieving top {args.retrieval_k} candidates for Processo ID: {processo_id_from_pdf}...")
@@ -218,9 +232,10 @@ def run_rag_pipeline():
         
         if not candidate_docs:
             logging.warning(f"Claim {claim_id}: No candidate documents retrieved. Marking as NÃO CONFERE.")
-            predicted_label = "NÃO CONFERE"
-            probability = 0.0
-            rationale = "Nenhum documento relevante encontrado no acórdão para a afirmação fornecida."
+            final_predicted_label = "NÃO CONFERE"
+            final_confidence = 0.0 # Or 1.0 for certainty of "NÃO CONFERE" due to no docs
+            final_rationale = "Nenhum documento relevante encontrado no acórdão para a afirmação fornecida."
+            # skip_llm is already False, LLM won't be called if no docs.
         else:
             # --- 4. Rerank candidate documents for the current claim --- 
             logging.info(f"Step 4 (Claim {claim_id}): Reranking top {len(candidate_docs)} candidates to select {args.reranker_n}...")
@@ -228,42 +243,97 @@ def run_rag_pipeline():
             
             if not top_n_reranked_docs:
                 logging.warning(f"Claim {claim_id}: No documents survived reranking. Marking as NÃO CONFERE.")
-                predicted_label = "NÃO CONFERE"
-                probability = 0.0
-                rationale = "Os documentos encontrados inicialmente não foram considerados suficientemente relevantes após o re-rankeamento."
+                final_predicted_label = "NÃO CONFERE"
+                final_confidence = 0.0 # Or 1.0
+                final_rationale = "Os documentos encontrados inicialmente não foram considerados suficientemente relevantes após o re-rankeamento."
+                # skip_llm is already False, LLM won't be called.
             else:
+                # Prepare context for LLM (top N) and for classifier voting
+                # This context will be used by LLM if it's called.
                 context_for_llm = [doc.get("text", "") for doc in top_n_reranked_docs if doc.get("text")]
-                # --- 5. Classify current claim based on top-1 reranked document --- 
-                top_1_doc_text = top_n_reranked_docs[0].get("text")
-                if not top_1_doc_text:
-                    logging.error(f"Claim {claim_id}: Top reranked document has no 'text' field. Marking as ERRO.")
-                    # predicted_label remains "ERRO"
-                    rationale = "Erro interno ao processar o documento principal para classificação."
-                else:
-                    logging.info(f"Step 5 (Claim {claim_id}): Classifying claim using top-1 reranked document...")
-                    predicted_label, probability = classify_claim(current_query_claim, top_1_doc_text)
 
-                # --- 6. Generate explanation for the current claim --- 
-                logging.info(f"Step 6 (Claim {claim_id}): Generating explanation using top {len(top_n_reranked_docs)} reranked documents...")
-                if not context_for_llm:
-                    logging.warning(f"Claim {claim_id}: No text found in reranked documents for generating explanation.")
-                    rationale = "Não foi possível gerar uma explicação pois os documentos relevantes não continham texto para o LLM."
+                # --- 5a. Classifier Voting Stage ---
+                logging.info(f"Step 5a (Claim {claim_id}): Performing classifier voting with {len(top_n_reranked_docs)} contexts...")
+                classifier_votes = []
+                classifier_confidences = []
+
+                for reranked_doc in top_n_reranked_docs:
+                    doc_text = reranked_doc.get("text")
+                    if not doc_text:
+                        logging.warning(f"Claim {claim_id}: A reranked document has no 'text' field. Skipping for classifier voting.")
+                        continue
+                    
+                    clf_label, clf_prob = classify_claim(current_query_claim, doc_text)
+                    classifier_votes.append(clf_label)
+                    classifier_confidences.append(clf_prob)
+                    classifier_votes_details.append({"doc_text_preview": doc_text[:100], "label": clf_label, "score": clf_prob})
+                
+                logging.info(f"Claim {claim_id}: Classifier votes: {classifier_votes}, Confidences: {[round(c, 4) for c in classifier_confidences]}")
+
+                # --- 5b. Analyze Votes & Conditional LLM Skip ---
+                if not classifier_votes: # Should not happen if top_n_reranked_docs was not empty and had text
+                    logging.warning(f"Claim {claim_id}: No classifier votes recorded despite having reranked docs. Defaulting to LLM.")
+                    skip_llm = False 
                 else:
-                    rationale = generate_explanation(
-                        current_query_claim, 
-                        context_for_llm, 
-                        max_new_tokens=args.explainer_max_tokens, 
-                        temperature=args.explainer_temperature
-                    )
+                    num_votes = len(classifier_votes)
+                    # Check for unanimity (Requires at least 1 vote)
+                    # We could add a threshold, e.g., requires at least min_votes_for_unanimity
+                    is_unanimous = len(set(classifier_votes)) == 1 
+
+                    if is_unanimous:
+                        unanimous_label = classifier_votes[0]
+                        avg_confidence = sum(classifier_confidences) / num_votes
+                        
+                        final_predicted_label = unanimous_label
+                        final_confidence = avg_confidence
+                        final_rationale = f"Classificador unânime ({num_votes} votos): {unanimous_label}. LLM não consultado."
+                        logging.info(f"Claim {claim_id}: Unanimous classifier decision: {final_predicted_label} with avg confidence {final_confidence:.4f}. Skipping LLM.")
+                        skip_llm = True
+                    else:
+                        # Mixed votes or other non-unanimous conditions
+                        logging.info(f"Claim {claim_id}: Classifier votes are mixed or condition for skipping LLM not met. Proceeding to LLM explanation.")
+                        skip_llm = False
+                        # LLM will determine final_predicted_label, final_rationale.
+                        # final_confidence will be from LLM (e.g., 1.0)
+
+                # --- 6. Generate explanation using LLM (if not skipped) --- 
+                if not skip_llm:
+                    if not context_for_llm: # Should not happen if top_n_reranked_docs was populated
+                        logging.warning(f"Claim {claim_id}: No text found in reranked documents for generating LLM explanation, though LLM was supposed to run.")
+                        final_predicted_label = "ERRO" # Or keep classifier's if available/sensible
+                        final_rationale = "Erro: Contexto para LLM estava vazio, embora o LLM devesse ser executado."
+                        final_confidence = 0.0
+                    else:
+                        logging.info(f"Step 6 (Claim {claim_id}): Generating LLM prediction and explanation using top {len(context_for_llm)} reranked documents...")
+                        try:
+                            # generate_explanation now returns (prediction, rationale)
+                            llm_prediction, llm_rationale = generate_explanation(
+                                current_query_claim, 
+                                context_for_llm, 
+                                max_new_tokens=args.explainer_max_tokens, 
+                                temperature=args.explainer_temperature
+                            )
+                            final_predicted_label = llm_prediction
+                            final_rationale = llm_rationale
+                            # If LLM provides prediction, we can set a nominal confidence or parse if available
+                            final_confidence = 1.0 if llm_prediction not in ["ERRO_DE_PARSING", "ERRO"] else 0.0 
+                            logging.info(f"Claim {claim_id}: LLM determined label: {final_predicted_label}")
+                        except Exception as e_llm:
+                            logging.error(f"Claim {claim_id}: LLM explanation step failed: {e_llm}", exc_info=True)
+                            final_predicted_label = "ERRO_LLM"
+                            final_rationale = f"Falha na geração da explicação pelo LLM: {str(e_llm)}"
+                            final_confidence = 0.0
+                # If skip_llm was True, final_predicted_label, final_confidence, final_rationale are already set from classifier.
 
         # --- Store results for this claim --- 
         all_claim_processing_results.append({
             "claim_id": claim_id,
             "claim_text": current_query_claim,
-            "predicted_label": predicted_label,
-            "confidence": probability,
-            "rationale": rationale,
-            "context_for_llm": context_for_llm # Store the actual list of context strings used
+            "predicted_label": final_predicted_label,
+            "confidence": final_confidence,
+            "rationale": final_rationale,
+            "context_for_llm": context_for_llm, # Full context list intended for LLM
+            "classifier_votes": classifier_votes_details # Optional: For detailed logging/debugging
         })
 
         # --- Print Live Output for the current claim --- 
@@ -273,9 +343,9 @@ def run_rag_pipeline():
         print(f"Resumo File: {resumo_basename}")
         print(f"Claim {claim_id} Text: {current_query_claim}")
         print("-"*50)
-        print(f"Predicted Label: {predicted_label}")
-        print(f"Confidence: {probability:.4f}")
-        print(f"Rationale (Explanation):\n{rationale}")
+        print(f"Predicted Label: {final_predicted_label}")
+        print(f"Confidence: {final_confidence:.4f}")
+        print(f"Rationale (Explanation):\n{final_rationale}")
         print("="*65 + "\n")
     
     # --- Save all results to files after processing all claims --- 

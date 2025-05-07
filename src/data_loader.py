@@ -29,11 +29,18 @@ def get_embedding_model(model_name: str = MODEL_NAME) -> SentenceTransformer:
     return _embedder_instance
 
 def _extract_processo_from_filename(filename: str) -> Optional[str]:
-    """Extracts 'NNN-YYYY' pattern from filename if possible."""
-    match = re.search(r'(\d+)[-_](\d{4})', filename)
+    """Extracts 'NNN de YYYY' or 'NNN-YYYY' or 'NNN_YYYY' pattern from filename if possible."""
+    # Try the new pattern first: NNN de YYYY
+    match = re.search(r'(\d+)\s*de\s*(\d{4})', filename)
     if match:
-        return f"{match.group(1)}-{match.group(2)}"
-    logging.warning(f"Could not extract 'processo' (NNN-YYYY) from filename: {filename}")
+        return f"{match.group(1)}-{match.group(2)}" # Standardize to NNN-YYYY
+    
+    # Fallback to the older pattern: NNN-YYYY or NNN_YYYY
+    match_fallback = re.search(r'(\d+)[-_](\d{4})', filename)
+    if match_fallback:
+        return f"{match_fallback.group(1)}-{match_fallback.group(2)}"
+        
+    logging.warning(f"Could not extract 'processo' (NNN de YYYY or NNN-YYYY) from filename: {filename}")
     return None
 
 def _ensure_nltk_punkt():
