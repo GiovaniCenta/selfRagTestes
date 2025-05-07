@@ -112,15 +112,22 @@ def _format_explanation_prompt(query: str, contexts: List[str]) -> str:
         f"SOBRE A JUSTIFICATIVA:\n"
         f"- Sua justificativa deve ser a consequência lógica direta da sua análise e da aplicação das regras de veredito. NÃO invente informações.\n"
         f"- NÃO forneça vereditos separados para cada parágrafo. O veredito é sobre a Afirmação como um todo, frente ao CONJUNTO de Parágrafos.\n\n"
-        f"FORMATO OBRIGATÓRIO DA SUA RESPOSTA:\n"
-        f"Sua resposta DEVE OBRIGATORIAMENTE começar com a palavra 'Correto' ou 'Incorreto', seguida por um ponto final ('.') e uma nova linha.\n"
-        f"Exemplo de início: Correto.\n"
-        f"Exemplo de início: Incorreto.\n"
-        f"Logo após o veredito e a nova linha, forneça uma justificativa curta e precisa (idealmente 1-2 frases, máximo 3) na forma 'Justificativa: [sua explicação]'. Sua justificativa DEVE:\n"
-        f"a) Explicar o porquê do veredito ('Correto' ou 'Incorreto') com base ESTRITAMENTE nas informações contidas nos 'Parágrafos' fornecidos e na sua análise passo-a-passo.\n"
-        f"b) Se possível, referenciar brevemente qual(is) 'Parágrafo(s)' específico(s) (ex: 'Parágrafo 1', 'Parágrafos 2 e 3') sustentam sua conclusão, ou a ausência de informação neles.\n"
-        f"c) NÃO utilize conhecimento externo. Baseie-se APENAS nos textos fornecidos.\n"
-        f"d) Se o veredito for 'Incorreto', mencione sucintamente qual regra (a, b ou c das REGRAS ESTRITAS) levou à sua decisão (ex: 'Incorreto devido à regra b, pois a informação sobre X não foi encontrada no Parágrafo Y').\n"
+        f"FORMATO OBRIGATÓRIO DA SUA RESPOSTA:\\n"
+        f"Sua resposta DEVE OBRIGATORIAMENTE começar com a palavra 'Correto' ou 'Incorreto', seguida por um ponto final ('.') e uma nova linha.\\n"
+        f"Exemplo de início: Correto.\\n"
+        f"Exemplo de início: Incorreto.\\n"
+        f"Logo APÓS o veredito (Correto. ou Incorreto.) E A NOVA LINHA, sua resposta DEVE continuar IMEDIATAMENTE com a frase 'Justificativa: ' (exatamente como escrito, incluindo o espaço após os dois pontos), seguida pela sua explicação. NÃO adicione linhas em branco extras ou qualquer outro texto entre a linha do veredito e a linha que começa com 'Justificativa: '.\\\\n"
+        f"EXEMPLO COMPLETO DE RESPOSTA ESPERADA:\\\\n"
+        f"Correto.\\\\n"
+        f"Justificativa: [sua explicação aqui]\\\\n\\\\n"
+        f"Ou\\\\n"
+        f"Incorreto.\\\\n"
+        f"Justificativa: [sua explicação aqui]\\\\n\\\\n"
+        f"Sua justificativa DEVE então:\\n"
+        f"a) Explicar o porquê do veredito ('Correto' ou 'Incorreto') com base ESTRITAMENTE nas informações contidas nos 'Parágrafos' fornecidos e na sua análise passo-a-passo.\\n"
+        f"b) Se possível, referenciar brevemente qual(is) 'Parágrafo(s)' específico(s) (ex: 'Parágrafo 1', 'Parágrafos 2 e 3') sustentam sua conclusão, ou a ausência de informação neles.\\n"
+        f"c) NÃO utilize conhecimento externo. Baseie-se APENAS nos textos fornecidos.\\n"
+        f"d) Se o veredito for 'Incorreto', mencione sucintamente qual regra (a, b ou c das REGRAS ESTRITAS) levou à sua decisão (ex: 'Incorreto devido à regra b, pois a informação sobre X não foi encontrada no Parágrafo Y').\\n"
         f"Responda em português."
     )
 
@@ -211,7 +218,8 @@ def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, tem
 
         # We added "Resultado: " to the prompt, so model starts generating the veredito.
         # Stricter regex, only accepts "Correto" or "Incorreto" (applied to cleaned_llm_response)
-        match = re.search(r"^\s*(Correto|Incorreto)\.?\s*[\n]*Justificativa:\s*(.*)", cleaned_llm_response, re.DOTALL | re.IGNORECASE)
+        # Made "Justificativa:" optional and simplified whitespace handling to a single \s*.
+        match = re.search(r"^\s*(Correto|Incorreto)\.?\s*(?:Justificativa:\s*)?(.*)", cleaned_llm_response, re.DOTALL | re.IGNORECASE)
 
         if match:
             extracted_verdict_word = match.group(1).strip().lower()
@@ -233,10 +241,10 @@ def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, tem
             
             logging.info(f"Parsed LLM Output: Verdict Word='{extracted_verdict_word}', Mapped Prediction='{prediction}', Rationale='{rationale[:100]}...'")
         else:
-            logging.warning(f"Could not parse LLM response starting with 'Correto' or 'Incorreto' and 'Justificativa:'. Using cleaned response as rationale. Cleaned response: '{cleaned_llm_response}'")
+            logging.warning(f"Could not parse LLM response starting with 'Correto' or 'Incorreto' and optionally 'Justificativa:'. Using cleaned response as rationale. Cleaned response: '{cleaned_llm_response}'")
             # Prediction remains default_prediction ("ERRO_DE_PARSING")
             # Use the cleaned response as the rationale for better error message
-            rationale = f"LLM não seguiu o formato esperado ('Correto' ou 'Incorreto'. Justificativa: ...). Resposta limpa: {cleaned_llm_response}" 
+            rationale = f"LLM não seguiu o formato esperado ('Correto' ou 'Incorreto'. [Justificativa:] ...). Resposta limpa: {cleaned_llm_response}" 
             # Update the rationale to use the cleaned response for clarity if parsing failed
 
         # Fallback rationale if everything else failed (e.g., completely empty response)
