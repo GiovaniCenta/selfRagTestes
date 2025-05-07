@@ -8,11 +8,9 @@ import re # Added import for regex in explain function
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - EXPLAINER - %(levelname)s - %(message)s')
 
 # --- Constants --- 
-# Updated Model ID to official Mistral Instruct v0.2
-LLM_EXPLAINER_MODEL_ID = "mistralai/Mistral-7B-Instruct-v0.2" 
-# Ensure this matches your available hardware and desired precision
-# For BF16, CUDA compute capability >= 8.0 (Ampere) is typically needed.
-# If not available, it might fall back or you might need torch.float16.
+# Updated Model ID to DeepSeek R1 Distilled Llama 8B
+LLM_EXPLAINER_MODEL_ID = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B" 
+# This model should fit in BF16 on A100 GPUs.
 MODEL_TORCH_DTYPE = torch.bfloat16 
 
 # --- Cached Model and Tokenizer --- 
@@ -36,49 +34,48 @@ def load_explainer_model_and_tokenizer(
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     try:
-        # Configure 4-bit quantization (optional, adjust as needed)
+        # --- REMOVING 8-BIT QUANTIZATION --- 
         quantization_config = None
-        # --- REMOVING 4-BIT QUANTIZATION ---
         # if torch.cuda.is_available():
         #     quantization_config = BitsAndBytesConfig(
-        #         load_in_4bit=True,
-        #         bnb_4bit_compute_dtype=MODEL_TORCH_DTYPE, # BF16 or FP16
-        #         bnb_4bit_quant_type="nf4",
-        #         bnb_4bit_use_double_quant=True,
+        #         load_in_8bit=True # Using 8-bit quantization for Llama 4 Scout
         #     )
-        #     logging.info("Using 4-bit quantization for explainer model.")
+        #     logging.info("Using 8-bit quantization for Llama 4 Scout explainer model.")
         # else:
-        #     logging.info("CUDA not available, loading explainer model in full precision on CPU (may be slow).")
-        logging.info(f"Loading explainer model in full precision ({MODEL_TORCH_DTYPE if device == 'cuda' else 'float32'}) on {device}.")
+        #     logging.warning("CUDA not available, loading Llama 4 Scout model in full precision on CPU. This WILL be extremely slow and likely fail due to memory.")
+        logging.info(f"Attempting to load {LLM_EXPLAINER_MODEL_ID} in {MODEL_TORCH_DTYPE if device == 'cuda' else 'float32'} on {device}.")
 
         model_kwargs = {
-            "torch_dtype": MODEL_TORCH_DTYPE if device == 'cuda' else torch.float32,
-            "low_cpu_mem_usage": True, # Useful for large models
-            # "trust_remote_code": True, # if model requires it
+            "low_cpu_mem_usage": True, 
+            # "trust_remote_code": True, 
         }
-        # --- REMOVING quantization_config and device_map from kwargs if they existed ---
-        # if quantization_config:
-        #     model_kwargs["quantization_config"] = quantization_config
-        #     model_kwargs["device_map"] = "auto" # Handles multi-GPU and CPU offloading
-        # else, model will be loaded on CPU first, then moved if device='cuda' is specified
+        # --- Simplified loading logic: No quantization, direct dtype setting --- 
+        if device == 'cuda':
+             model_kwargs["torch_dtype"] = MODEL_TORCH_DTYPE
+        else:
+             # If no CUDA, use float32
+             model_kwargs["torch_dtype"] = torch.float32
         
         logging.info(f"Loading model '{model_id}' with kwargs: {model_kwargs}")
-        # Load model directly, will be on CPU initially if not using device_map
+        # Load model using AutoModelForCausalLM
+        # If CUDA is available, transformers will often try to load directly to GPU with this setup.
+        # If not, it loads on CPU.
         model = AutoModelForCausalLM.from_pretrained(model_id, **model_kwargs) 
         
-        # Move model to GPU if CUDA is available and we didn't use device_map='auto'
-        if device == 'cuda': 
-             model = model.to(device)
+        # Explicitly move to GPU if loaded on CPU and CUDA is available
+        if device == 'cuda' and model.device.type != 'cuda':
+            logging.info(f"Moving model from {model.device} to {device}...")
+            model = model.to(device)
 
         logging.info(f"Explainer model '{model_id}' loaded on device: {model.device if hasattr(model, 'device') else device}")
 
         tokenizer = AutoTokenizer.from_pretrained(model_id)
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
-            # For decoder-only models, padding side is often right, but check model specifics
-            # tokenizer.padding_side = "left" # For Gemma
-            tokenizer.padding_side = "right" # Mistral typically uses right padding
-            logging.info(f"Set tokenizer pad_token to eos_token and padding_side to '{tokenizer.padding_side}'.")
+            # For decoder-only models, padding side is often right.
+            # Llama 3 might have specific recommendations, but "right" is common.
+            tokenizer.padding_side = "right" 
+            logging.info(f"Set tokenizer pad_token to eos_token ({tokenizer.eos_token}) and padding_side to '{tokenizer.padding_side}'.")
         
         _explainer_model_instance = model
         _explainer_tokenizer_instance = tokenizer
@@ -92,37 +89,59 @@ def load_explainer_model_and_tokenizer(
 
 def _format_explanation_prompt(query: str, contexts: List[str]) -> str:
     """
-    Formats the prompt for the Mistral-Instruct model to generate a prediction and an explanation.
+    Formats the prompt for the deepseek-ai/DeepSeek-R1-Distill-Llama-8B model.
+    Uses the Llama 3 instruct format structure, but following DeepSeek's recommendation,
+    places all instructions within the user message.
     Instructs the model to respond in Portuguese with a specific format.
     """
-    context_str = "\n\n".join(f"Parágrafo {i+1}:\n{chunk}" for i, chunk in enumerate(contexts) if chunk.strip())
+    context_str = "\\n\\n".join(f"Parágrafo {i+1}:\\n{chunk}" for i, chunk in enumerate(contexts) if chunk.strip())
     if not context_str:
         context_str = "Nenhum parágrafo de contexto foi fornecido."
 
-    # Updated Prompt for structured output + Language Instruction
-    prompt = (
-        f"<s>[INST] Sua tarefa é analisar o conjunto de Parágrafos fornecidos abaixo e determinar se eles, como um todo, confirmam ou contradizem a Afirmação dada.\\n"
-        f"Forneça um veredito ÚNICO para a Afirmação: 'Correto' ou 'Incorreto'.\\n"
-        f"Verifique CUIDADOSAMENTE se TODAS as partes da Afirmação são suportadas pelas informações nos Parágrafos.\\n"
-        f"- Use 'Correto' SOMENTE SE o conjunto de parágrafos CONTÉM informação que confirma CLARAMENTE TODAS as partes da Afirmação.\\n"
-        f"- Use 'Incorreto' SE QUALQUER parte da Afirmação for contradita pelos parágrafos OU SE a informação fornecida for insuficiente para confirmar TODAS as partes da Afirmação.\\n"
-        f"NÃO forneça vereditos separados para cada parágrafo.\\n"
+    # Instructions (previously in system prompt, now moved to user prompt per DeepSeek R1 recommendations)
+    instructions = (
+        f"Sua tarefa é analisar o conjunto de Parágrafos fornecidos abaixo e determinar se eles, como um todo, confirmam ou contradizem a Afirmação dada. Seja extremamente rigoroso e cético.\\n\\n"
+        f"PASSO A PASSO PARA SUA ANÁLISE:\\n"
+        f"1. Decomponha a Afirmação em todas as suas partes ou sub-alegações constituintes.\\n"
+        f"2. Para CADA parte da Afirmação, verifique se há evidência CLARA e DIRETA nos Parágrafos que a confirme.\\n"
+        f"3. Verifique também se há QUALQUER informação nos Parágrafos que CONTRADIGA explicitamente QUALQUER parte da Afirmação.\\n\\n"
+        f"REGRAS PARA O VEREDITO ÚNICO ('Correto' ou 'Incorreto'):\\n"
+        f"- Use 'Correto' SOMENTE E APENAS SE TODAS AS PARTES da Afirmação forem CLARAMENTE confirmadas pelos Parágrafos E não houver NENHUMA contradição a QUALQUER parte da Afirmação.\\n"
+        f"- Use 'Incorreto' SE: \\n"
+        f"    a) QUALQUER parte da Afirmação for explicitamente CONTRADITA pelos Parágrafos; OU\\n"
+        f"    b) QUALQUER parte da Afirmação NÃO PUDER ser confirmada por falta de informação clara nos Parágrafos; OU\\n"
+        f"    c) Houver qualquer ambiguidade ou dúvida razoável sobre a confirmação de TODAS as partes.\\n\\n"
+        f"NÃO forneça vereditos separados para cada parágrafo. O veredito é sobre a Afirmação como um todo frente ao conjunto de Parágrafos.\\n"
         f"Sua resposta DEVE OBRIGATORIAMENTE começar com a palavra 'Correto' ou 'Incorreto', seguida por um ponto final ('.') e uma nova linha.\\n"
         f"Exemplo de início: Correto.\\n"
         f"Exemplo de início: Incorreto.\\n"
-        f"Logo após o veredito e a nova linha, forneça uma justificativa curta (até 3 frases) na forma 'Justificativa: [sua explicação]', explicando sua decisão com base no conjunto de parágrafos.\\n"
-        f"**Responda em português.**\\n\\n"
+        f"Logo após o veredito e a nova linha, forneça uma justificativa curta (até 3 frases) na forma 'Justificativa: [sua explicação]', explicando sua decisão com base no conjunto de parágrafos e mencionando brevemente qual regra (acima) levou à sua decisão, especialmente se for 'Incorreto'.\\n"
+        f"**Responda em português.**"
+    )
+
+    # Constructing the user message including instructions
+    user_message = (
+        f"{instructions}\\n\\n"
+        f"---\n"
         f"Afirmação: {query}\\n\\n"
-        f"Parágrafos:\\n{context_str}\\n\\n"
-        f"[/INST]Resultado: " # Model will continue from here
+        f"Parágrafos:\\n{context_str}"
+        f"\n---"
+    )
+
+    # Constructing the Llama 3 prompt structure with empty system prompt
+    prompt = (
+        f"<|begin_of_text|>"
+        f"<|start_header_id|>system<|end_header_id|>\\n\\n<|eot_id|>"
+        f"<|start_header_id|>user<|end_header_id|>\\n\\n{user_message}<|eot_id|>"
+        f"<|start_header_id|>assistant<|end_header_id|>\\n\\n" # Model will continue from here
     )
     return prompt
 
-def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, temperature: float = 0.1) -> Tuple[str, str]:
+def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, temperature: float = 0.6) -> Tuple[str, str]:
     """
     Generates a prediction ("Correto", "Incorreto", or "ERRO_DE_PARSING") and a rationale
     explaining whether the provided texts support the query.
-    Uses the Mistral-7B-Instruct model.
+    Uses the deepseek-ai/DeepSeek-R1-Distill-Llama-8B model.
     """
     default_prediction = "ERRO_DE_PARSING"
     default_rationale = "Não foi possível gerar a explicação ou parsear o resultado do LLM."
@@ -142,11 +161,14 @@ def explain(query: str, list_of_texts: List[str], max_new_tokens: int = 150, tem
         
         generation_kwargs = {
             "max_new_tokens": max_new_tokens,
-            "temperature": temperature,
-            "top_p": 0.9,
-            "do_sample": True,
-            "pad_token_id": tokenizer.eos_token_id,
-            "eos_token_id": tokenizer.eos_token_id # Ensure this is correctly set
+            "temperature": temperature, 
+            "top_p": 0.9, # Maintained from previous
+            "do_sample": True if temperature > 0 else False, # Sample if temperature is not 0
+            "pad_token_id": tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id,
+            "eos_token_id": tokenizer.eos_token_id # Important: Llama3 uses specific EOT tokens. Ensure tokenizer.eos_token_id is correctly set for Llama3.
+                                              # Often, eos_token_id for Llama3 can be a list of token IDs that signify end of turn.
+                                              # Forcing a single one might be okay if it's the primary one.
+                                              # The tokenizer for Llama 3 should have this set correctly.
         }
         
         logging.info(f"Generating explanation with {LLM_EXPLAINER_MODEL_ID}...")
