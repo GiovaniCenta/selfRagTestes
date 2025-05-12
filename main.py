@@ -3,6 +3,7 @@ import argparse
 import os
 import csv # Added for CSV output
 import datetime # Added for timestamp in filenames
+import json # Para salvar resultados do Self-RAG
 from dotenv import load_dotenv
 
 # Import new modules
@@ -12,6 +13,7 @@ from src.retriever import search as retrieve_candidates
 from src.reranker import rank as rerank_candidates
 # from src.verifier import classify as classify_claim # Replaced validator.py - REMOVING THIS
 from src.llm_explainer import explain as generate_explanation # New module
+from src.self_rag import answer_with_self_rag # Novo módulo para Self-RAG
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - MAIN - %(levelname)s - %(message)s')
@@ -305,5 +307,207 @@ def run_rag_pipeline():
 
     logging.info(f"Finished processing all {len(claims_from_resumo)} claims from {args.resumo_file}.")
 
+def run_self_rag_qa():
+    """Function to run the Self-RAG Q&A system."""
+    # --- Load Environment Variables --- 
+    load_dotenv() # Load from .env file in the project root
+    logging.info("Loaded environment variables from .env if present.")
+    
+    # --- Argument Parsing --- 
+    parser = argparse.ArgumentParser(description="Self-RAG Q&A: Utilizando RAG com auto-refinamento para perguntas e respostas.")
+    parser.add_argument(
+        "--pdf_file", 
+        type=str, 
+        default="data/Acórdão 733 de 2025 Plenário.pdf", 
+        help="Caminho para o PDF principal a ser processado e indexado."
+    )
+    parser.add_argument(
+        "--query", 
+        type=str, 
+        default="", 
+        help="Pergunta a ser respondida. Se vazia, será solicitada interativamente."
+    )
+    parser.add_argument(
+        "--interactive", 
+        action="store_true", 
+        help="Modo interativo para fazer múltiplas perguntas."
+    )
+    
+    # Parâmetros do Self-RAG
+    parser.add_argument("--output_dir", type=str, default="results", help="Diretório para salvar resultados.")
+    parser.add_argument("--max_attempts", type=int, default=3, help="Número máximo de tentativas de refinamento para cada pergunta.")
+    parser.add_argument("--initial_k", type=int, default=10, help="Número de documentos iniciais a recuperar.")
+    parser.add_argument("--reranker_n", type=int, default=5, help="Número de documentos após reranking.")
+    parser.add_argument("--temperature", type=float, default=0.1, help="Temperatura do LLM para geração de respostas.")
+    parser.add_argument("--max_tokens", type=int, default=200, help="Número máximo de tokens por resposta gerada.")
+    parser.add_argument("--save_results", action="store_true", help="Salvar resultados em arquivo JSON.")
+    
+    args = parser.parse_args()
+    
+    # Verificar e criar diretório de saída
+    output_directory = _ensure_output_dir(args.output_dir)
+    
+    # --- Verificar arquivo PDF ---
+    if not os.path.exists(args.pdf_file):
+        logging.error(f"Arquivo PDF não encontrado: '{args.pdf_file}'. Forneça um caminho válido.")
+        return
+    
+    # --- 1. Carregar e indexar PDF ---
+    logging.info(f"Processando PDF: {args.pdf_file}")
+    docs_with_embeddings = pdf_to_docs(args.pdf_file)
+    if not docs_with_embeddings:
+        logging.error(f"Falha ao processar o PDF {args.pdf_file} ou nenhum documento extraído. Saindo.")
+        return
+    
+    processo_id_from_pdf = docs_with_embeddings[0].get("processo")
+    if not processo_id_from_pdf:
+        logging.error("Não foi possível determinar o ID do processo a partir dos documentos processados. Saindo.")
+        return
+    logging.info(f"ID do Processo identificado: {processo_id_from_pdf}")
+    
+    # --- 2. Indexar documentos no Cosmos DB ---
+    logging.info("Indexando documentos...")
+    try:
+        upsert_items(docs_with_embeddings)
+        logging.info("Indexação dos documentos concluída.")
+    except Exception as e:
+        logging.error(f"Falha durante a indexação dos documentos: {e}", exc_info=True)
+        return
+    
+    # --- 3. Modo de execução: Interativo ou Consulta Única ---
+    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    pdf_basename = os.path.basename(args.pdf_file)
+    
+    if args.interactive:
+        # --- Modo interativo ---
+        all_qa_results = []
+        query_counter = 1
+        
+        print("\n" + "="*30 + " MODO INTERATIVO " + "="*30)
+        print(f"PDF indexado: {pdf_basename}")
+        print(f"ID do Processo: {processo_id_from_pdf}")
+        print("Digite suas perguntas. Para sair, digite 'sair' ou 'exit'.\n")
+        
+        while True:
+            # Solicitar pergunta ao usuário
+            user_query = input("\nSua pergunta: ")
+            if user_query.lower() in ['sair', 'exit', 'quit']:
+                break
+                
+            if not user_query.strip():
+                print("Pergunta vazia. Por favor, tente novamente.")
+                continue
+            
+            print("\nProcessando sua pergunta...")
+            
+            # Processar a pergunta
+            qa_result = answer_with_self_rag(
+                user_query,
+                processo_id=processo_id_from_pdf,
+                initial_k=args.initial_k,
+                reranker_n=args.reranker_n,
+                max_attempts=args.max_attempts,
+                temperature=args.temperature,
+                max_tokens=args.max_tokens
+            )
+            
+            # Adicionar informações adicionais ao resultado
+            qa_result["query"] = user_query
+            qa_result["query_id"] = query_counter
+            all_qa_results.append(qa_result)
+            query_counter += 1
+            
+            # Exibir resposta
+            print("\n" + "-"*60)
+            print(f"Resposta: {qa_result['answer']}")
+            print("-"*60)
+            print(f"Qualidade: {qa_result['final_quality_score']}/10")
+            print(f"Tentativas: {qa_result['total_attempts']}/{args.max_attempts}")
+            print(f"Tokens totais: {qa_result['stats']['total_input_tokens'] + qa_result['stats']['total_output_tokens']}")
+            print(f"Tokens adicionais (avaliação/refinamento): {qa_result['stats']['additional_tokens']}")
+            print("-"*60)
+        
+        # Salvar resultados se solicitado
+        if args.save_results and all_qa_results:
+            results_filename = f"{processo_id_from_pdf}_qa_results_{timestamp}.json"
+            results_filepath = os.path.join(output_directory, results_filename)
+            
+            try:
+                with open(results_filepath, 'w', encoding='utf-8') as f:
+                    json.dump(all_qa_results, f, ensure_ascii=False, indent=2)
+                print(f"\nResultados salvos em: {results_filepath}")
+            except Exception as e:
+                logging.error(f"Erro ao salvar resultados: {e}")
+                print(f"Erro ao salvar resultados: {e}")
+    
+    else:
+        # --- Modo consulta única ---
+        query = args.query
+        
+        # Se a consulta não foi fornecida como argumento, solicitar
+        if not query:
+            query = input("Digite sua pergunta: ")
+            if not query.strip():
+                logging.error("Pergunta vazia. Saindo.")
+                return
+        
+        logging.info(f"Processando pergunta: '{query}'")
+        
+        # Processar a pergunta
+        qa_result = answer_with_self_rag(
+            query,
+            processo_id=processo_id_from_pdf,
+            initial_k=args.initial_k,
+            reranker_n=args.reranker_n,
+            max_attempts=args.max_attempts,
+            temperature=args.temperature,
+            max_tokens=args.max_tokens
+        )
+        
+        # Adicionar informações adicionais ao resultado
+        qa_result["query"] = query
+        qa_result["query_id"] = 1
+        
+        # Exibir resposta
+        print("\n" + "="*30 + " RESULTADO " + "="*30)
+        print(f"Pergunta: {query}")
+        print("\n" + "-"*60)
+        print(f"Resposta: {qa_result['answer']}")
+        print("-"*60)
+        print(f"Qualidade: {qa_result['final_quality_score']}/10")
+        print(f"Tentativas: {qa_result['total_attempts']}/{args.max_attempts}")
+        print(f"Tokens totais: {qa_result['stats']['total_input_tokens'] + qa_result['stats']['total_output_tokens']}")
+        print(f"Tokens adicionais (avaliação/refinamento): {qa_result['stats']['additional_tokens']}")
+        print("-"*60)
+        
+        # Salvar resultados se solicitado
+        if args.save_results:
+            results_filename = f"{processo_id_from_pdf}_qa_single_{timestamp}.json"
+            results_filepath = os.path.join(output_directory, results_filename)
+            
+            try:
+                with open(results_filepath, 'w', encoding='utf-8') as f:
+                    json.dump([qa_result], f, ensure_ascii=False, indent=2)
+                print(f"\nResultado salvo em: {results_filepath}")
+            except Exception as e:
+                logging.error(f"Erro ao salvar resultado: {e}")
+                print(f"Erro ao salvar resultado: {e}")
+    
+    logging.info("Execução do Self-RAG Q&A concluída.")
+
 if __name__ == "__main__":
-    run_rag_pipeline()
+    # Determinar qual pipeline executar
+    parser = argparse.ArgumentParser(description="Sistema de RAG para validação de alegações ou perguntas e respostas.")
+    parser.add_argument("--mode", type=str, choices=["validate", "qa"], default="validate", 
+                        help="Modo de execução: 'validate' para validação de alegações, 'qa' para perguntas e respostas")
+    
+    args, remaining_args = parser.parse_known_args()
+    
+    # Ajustar sys.argv para passar os argumentos restantes para a função escolhida
+    import sys
+    sys.argv = [sys.argv[0]] + remaining_args
+    
+    if args.mode == "validate":
+        run_rag_pipeline()
+    elif args.mode == "qa":
+        run_self_rag_qa()

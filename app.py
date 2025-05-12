@@ -4,6 +4,7 @@ import sys
 import logging
 import time
 import tempfile
+import json
 from pathlib import Path
 
 # Configure logging for Streamlit
@@ -22,6 +23,7 @@ try:
     from src.retriever import retrieve_relevant_chunks
     from src.reranker import rerank_chunks, RERANKER_SCORE_THRESHOLD, RERANKER_SELECT_TOP_N
     from src.validator import validate_claim_with_llm
+    from src.self_rag import answer_with_self_rag, SelfRAG
     INITIAL_RETRIEVAL_TOP_K = 5
 except ImportError as e:
     st.error(f"Erro ao importar módulos necessários: {e}. Verifique se 'src' está no PYTHONPATH.")
@@ -446,6 +448,153 @@ def page_validate_claims():
             else:
                  metrics_placeholder.warning("Nenhuma alegação processada.")
 
+def page_self_rag_qa():
+    """Página para o sistema Self-RAG de perguntas e respostas."""
+    st.header("🤖 Perguntas e Respostas com Self-RAG")
+    st.write(f"Sistema inteligente de perguntas e respostas com auto-refinamento.")
+    st.write(f"Consulta será feita no índice em: `{CHROMA_PERSIST_DIR}`")
+    
+    if not os.path.exists(CHROMA_PERSIST_DIR):
+        st.error(f"Diretório do índice ChromaDB não encontrado em {CHROMA_PERSIST_DIR}. Crie o índice primeiro.")
+        st.stop()
+    
+    # Interface para pergunta
+    st.subheader("Faça sua pergunta")
+    query = st.text_area("Digite sua pergunta sobre o documento:", height=100)
+    
+    # Configurações avançadas
+    with st.expander("Configurações avançadas", expanded=False):
+        col1, col2 = st.columns(2)
+        with col1:
+            initial_k = st.number_input("Documentos iniciais (k):", min_value=1, max_value=20, value=10)
+            reranker_n = st.number_input("Documentos após reranking (n):", min_value=1, max_value=initial_k, value=5)
+            process_id_filter = st.text_input("Filtrar por ID do processo (opcional):", value="")
+        with col2:
+            max_attempts = st.number_input("Máximo de tentativas de refinamento:", min_value=1, max_value=5, value=3)
+            temperature = st.slider("Temperatura do LLM:", min_value=0.0, max_value=1.0, value=0.1, step=0.05)
+            max_tokens = st.number_input("Máximo de tokens por resposta:", min_value=50, max_value=500, value=200, step=50)
+    
+    # Botão para processar
+    if st.button("Processar pergunta", key="process_self_rag_btn"):
+        if not query:
+            st.warning("Por favor, digite uma pergunta.")
+            st.stop()
+        
+        # Mostrar progresso
+        progress_container = st.container()
+        result_container = st.container()
+        
+        with progress_container:
+            st.info("Processando sua pergunta com Self-RAG...")
+            progress_bar = st.progress(0)
+            progress_text = st.empty()
+            
+            # Callback para atualizar o progresso
+            def progress_callback(stage, attempt, message, progress_value):
+                progress_bar.progress(progress_value)
+                progress_text.info(f"Estágio: {stage} | Tentativa: {attempt} | {message}")
+            
+            # Processar pergunta
+            start_time = time.time()
+            try:
+                # Preparar os argumentos
+                qa_args = {
+                    "query": query,
+                    "processo_id": process_id_filter if process_id_filter else None,
+                    "initial_k": initial_k,
+                    "reranker_n": reranker_n,
+                    "max_attempts": max_attempts,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens
+                }
+                
+                # Lógica para atualizar o progresso baseado na fase
+                progress_callback("Recuperação", 1, "Recuperando documentos relevantes...", 10)
+                
+                # Executar Self-RAG
+                result = answer_with_self_rag(**qa_args)
+                
+                # Atualizar progresso para conclusão
+                progress_callback("Concluído", result["total_attempts"], "Processamento finalizado!", 100)
+                
+            except Exception as e:
+                st.error(f"Erro ao processar pergunta: {e}")
+                return
+            
+            processing_time = time.time() - start_time
+        
+        # Mostrar resultados
+        with result_container:
+            st.markdown("---")
+            st.subheader("Resposta")
+            
+            # Exibir a resposta principal
+            st.markdown(f"**Pergunta:** {query}")
+            st.markdown(f"**Resposta final:**")
+            st.markdown(f"{result['answer']}")
+            
+            # Métricas e estatísticas
+            st.markdown("---")
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Qualidade", f"{result['final_quality_score']:.1f}/10")
+            with col2:
+                st.metric("Tentativas", f"{result['total_attempts']}/{max_attempts}")
+            with col3:
+                tokens_total = result['stats']['total_input_tokens'] + result['stats']['total_output_tokens']
+                st.metric("Tokens Totais", tokens_total)
+            with col4:
+                st.metric("Tempo (s)", f"{processing_time:.2f}")
+            
+            # Detalhes sobre o processo
+            with st.expander("Detalhes do processo de refinamento", expanded=False):
+                st.markdown("### Histórico de tentativas")
+                
+                for i, attempt_data in enumerate(result['stats']['attempts']):
+                    attempt_num = attempt_data['attempt']
+                    quality = attempt_data['quality_score']
+                    
+                    st.markdown(f"**Tentativa {attempt_num}** (Qualidade: {quality:.1f}/10)")
+                    st.markdown(f"**Resposta:**\n{attempt_data['answer']}")
+                    st.markdown(f"**Avaliação:**\n{attempt_data['evaluation']}")
+                    st.markdown("---")
+                
+                st.markdown("### Métricas detalhadas")
+                st.json(
+                    {
+                        "tokens_entrada": result['stats']['total_input_tokens'],
+                        "tokens_saida": result['stats']['total_output_tokens'],
+                        "tokens_adicionais": result['stats']['additional_tokens'],
+                        "progresso_qualidade": result['stats']['quality_improvements'],
+                        "tempo_processamento_segundos": processing_time
+                    }
+                )
+            
+            # Contexto utilizado
+            with st.expander("Contexto utilizado na resposta", expanded=False):
+                for i, context in enumerate(result['context_used']):
+                    st.markdown(f"**Documento {i+1}:**")
+                    st.markdown(f"{context}")
+                    st.markdown("---")
+            
+            # Opção para salvar resultado
+            if st.button("Salvar resultado em JSON"):
+                try:
+                    # Criar nome do arquivo com timestamp
+                    import datetime
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"self_rag_result_{timestamp}.json"
+                    
+                    # Garantir que o diretório existe
+                    os.makedirs("results", exist_ok=True)
+                    
+                    # Salvar resultado
+                    with open(os.path.join("results", filename), "w", encoding="utf-8") as f:
+                        json.dump(result, f, ensure_ascii=False, indent=2)
+                    
+                    st.success(f"Resultado salvo em results/{filename}")
+                except Exception as e:
+                    st.error(f"Erro ao salvar resultado: {e}")
 
 # === Main App Structure ===
 st.set_page_config(page_title="Validador de Acórdãos", layout="wide")
@@ -453,7 +602,7 @@ st.title("⚖️ Validador de Resumos de Acórdãos TCU")
 
 # --- Sidebar Navigation ---
 st.sidebar.title("Navegação")
-page_options = ["Criar Índice", "Consultar Chunks", "Validar Alegações"]
+page_options = ["Criar Índice", "Consultar Chunks", "Validar Alegações", "Perguntas e Respostas"]
 selected_page = st.sidebar.radio("Selecione a Ação:", page_options)
 st.sidebar.markdown("--- ")
 st.sidebar.info("Aplicação para validar alegações de resumos contra documentos originais de acórdãos.")
@@ -465,5 +614,7 @@ elif selected_page == "Consultar Chunks":
     page_retrieve_chunks()
 elif selected_page == "Validar Alegações":
     page_validate_claims()
+elif selected_page == "Perguntas e Respostas":
+    page_self_rag_qa()
 else:
     st.error("Página não encontrada.") 
