@@ -20,7 +20,7 @@ EMBEDDING_MODEL_NAME = "intfloat/multilingual-e5-large-instruct"
 _PROJECT_ROOT_RET = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHROMA_PERSIST_DIR = os.path.join(_PROJECT_ROOT_RET, "chroma_db_index")
 # Nome da coleção - usa o nome disponível na base
-CHROMA_COLLECTION_NAME = "acordaos"  # Corrigido: era acordaos_legal_bertimbau
+CHROMA_COLLECTION_NAME = "acordaos"  # Atualizado para usar a coleção existente
 # Prefix for query embeddings (as recommended for E5 models)
 QUERY_PREFIX = "query: "
 

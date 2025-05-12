@@ -3,6 +3,7 @@ import sys
 import os
 import time
 import logging
+import glob
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - TEST - %(levelname)s - %(message)s')
@@ -14,10 +15,56 @@ sys.path.append(current_dir)
 # Importar a função de teste do Self-RAG
 try:
     from src.self_rag import run_self_rag_tests
+    # Importar módulos necessários para indexação
+    from src.data_loader import pdf_to_docs
+    from src.indexer import upsert_items, CHROMA_PERSIST_DIR
 except ImportError as e:
     print(f"Erro ao importar módulo Self-RAG: {e}")
     print("Certifique-se de que o arquivo src/self_rag.py existe e contém a função run_self_rag_tests.")
     sys.exit(1)
+
+def ensure_chroma_index_exists():
+    """
+    Verifica se o índice ChromaDB existe e o cria caso não exista.
+    Utiliza os PDFs disponíveis na pasta data/ para a indexação.
+    """
+    if os.path.exists(CHROMA_PERSIST_DIR):
+        logging.info(f"ChromaDB já existe em: {CHROMA_PERSIST_DIR}")
+        return True
+    
+    logging.info(f"ChromaDB não encontrado em: {CHROMA_PERSIST_DIR}. Criando índice...")
+    
+    # Criar diretório se não existir
+    os.makedirs(CHROMA_PERSIST_DIR, exist_ok=True)
+    
+    # Encontrar PDFs na pasta data/
+    pdf_files = glob.glob(os.path.join("data", "*.pdf"))
+    if not pdf_files:
+        logging.error("Nenhum arquivo PDF encontrado na pasta data/. Não é possível criar o índice.")
+        return False
+    
+    # Processar cada PDF e indexar
+    for pdf_file in pdf_files:
+        logging.info(f"Processando PDF para indexação: {pdf_file}")
+        try:
+            # Extrair documentos do PDF
+            docs_with_embeddings = pdf_to_docs(pdf_file)
+            if not docs_with_embeddings:
+                logging.warning(f"Não foi possível extrair documentos de {pdf_file}")
+                continue
+            
+            # Indexar documentos
+            upsert_items(docs_with_embeddings)
+            logging.info(f"PDF {pdf_file} indexado com sucesso!")
+        except Exception as e:
+            logging.error(f"Erro ao processar PDF {pdf_file}: {e}")
+    
+    if os.path.exists(CHROMA_PERSIST_DIR):
+        logging.info("ChromaDB criado com sucesso!")
+        return True
+    else:
+        logging.error("Falha ao criar ChromaDB.")
+        return False
 
 def main():
     """
@@ -47,6 +94,8 @@ def main():
                         help="ID específico de uma pergunta para testar (ex: 733_simples_1). Se vazio, testa todas da categoria.")
     parser.add_argument("--debug", action="store_true",
                         help="Ativa modo de debug com mais informações de diagnóstico")
+    parser.add_argument("--force_index", action="store_true",
+                        help="Forçar criação do índice mesmo que já exista")
     
     args = parser.parse_args()
     
@@ -112,6 +161,14 @@ def main():
         print(f"- FILTRO: Apenas categoria '{args.select_category}'")
     if args.select_question:
         print(f"- FILTRO: Apenas pergunta ID '{args.select_question}'")
+    
+    # Verificar e criar índice ChromaDB se necessário
+    if args.force_index or not os.path.exists(CHROMA_PERSIST_DIR):
+        print("\n" + "="*30 + " VERIFICAÇÃO/CRIAÇÃO DE ÍNDICE " + "="*30)
+        if ensure_chroma_index_exists():
+            print("✓ Índice ChromaDB verificado/criado com sucesso!")
+        else:
+            print("✗ Falha na criação do índice ChromaDB. Testes podem falhar.")
     
     # Executar os testes
     try:

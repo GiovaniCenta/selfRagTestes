@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - INDEXER - %(leveln
 # --- ChromaDB Constants ---
 _PROJECT_ROOT_IDX = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHROMA_PERSIST_DIR = os.path.join(_PROJECT_ROOT_IDX, "chroma_db_index")
-CHROMA_COLLECTION_NAME = "acordaos_legal_bertimbau" 
+CHROMA_COLLECTION_NAME = "acordaos" 
 EMBEDDING_MODEL_DIMENSION = 1024 
 EMBEDDING_MODEL_NAME_FOR_CHROMA_META = "rufimelo/Legal-BERTimbau-sts-large" 
 
