@@ -8,7 +8,7 @@ import re
 
 # Importar componentes existentes
 from .retriever import retrieve_relevant_chunks
-from .reranker import rerank_chunks
+from .reranker import rank as rerank_chunks
 from .llm_explainer import load_explainer_model_and_tokenizer
 
 # Configurar logging
@@ -190,13 +190,27 @@ class SelfRAG:
         attempt = 1
         logging.info(f"Tentativa {attempt}: Recuperando chunks iniciais para a pergunta")
         
-        # Recuperar chunks iniciais
-        retrieved_context = retrieve_relevant_chunks(query, top_k=self.initial_retrieval_k)
-        if not retrieved_context or not retrieved_context.get('documents') or not retrieved_context['documents'][0]:
+        try:
+            # Recuperar chunks iniciais
+            retrieved_context = retrieve_relevant_chunks(query, top_k=self.initial_retrieval_k)
+            if not retrieved_context or not retrieved_context.get('documents') or not retrieved_context['documents'][0]:
+                logging.error(f"Não foi possível recuperar informações para a pergunta: {query[:50]}...")
+                return {
+                    "answer": "Não foi possível recuperar informações para responder à pergunta.",
+                    "final_quality_score": 0,
+                    "evaluation": "Falha na recuperação de documentos relevantes.",
+                    "total_attempts": 1,
+                    "context_used": [],
+                    "stats": self.stats,
+                    "processing_time": time.time() - start_time
+                }
+        except Exception as e:
+            logging.error(f"Erro durante a recuperação de documentos: {e}")
             return {
-                "answer": "Não foi possível recuperar informações para responder à pergunta.",
-                "attempt": 1,
-                "quality_score": 0,
+                "answer": f"Erro ao processar a pergunta: {str(e)}",
+                "final_quality_score": 0,
+                "evaluation": "Erro no sistema de recuperação.",
+                "total_attempts": 0,
                 "context_used": [],
                 "stats": self.stats,
                 "processing_time": time.time() - start_time
@@ -217,13 +231,26 @@ class SelfRAG:
         
         # Reranking
         logging.info(f"Tentativa {attempt}: Rerankeando {len(initial_chunks)} chunks")
-        reranked_chunks = rerank_chunks(query, initial_chunks)
-        
-        if not reranked_chunks:
+        try:
+            reranked_chunks = rerank_chunks(query, initial_chunks)
+            
+            if not reranked_chunks:
+                return {
+                    "answer": "Documentos recuperados não foram considerados relevantes após reranking.",
+                    "final_quality_score": 0,
+                    "evaluation": "Sem contexto relevante após reranking.",
+                    "total_attempts": 1,
+                    "context_used": [],
+                    "stats": self.stats,
+                    "processing_time": time.time() - start_time
+                }
+        except Exception as e:
+            logging.error(f"Erro durante o reranking: {e}")
             return {
-                "answer": "Documentos recuperados não foram considerados relevantes após reranking.",
-                "attempt": 1,
-                "quality_score": 0,
+                "answer": f"Erro ao reranquear os documentos: {str(e)}",
+                "final_quality_score": 0,
+                "evaluation": "Erro no sistema de reranking.",
+                "total_attempts": 1,
                 "context_used": [],
                 "stats": self.stats,
                 "processing_time": time.time() - start_time
@@ -233,64 +260,94 @@ class SelfRAG:
         selected_contexts = [chunk['text'] for chunk in reranked_chunks[:self.reranker_n]]
         
         # Gerar resposta inicial
-        qa_prompt = self._format_qa_prompt(query, selected_contexts)
-        current_answer, in_tokens, out_tokens = self._generate_llm_response(qa_prompt)
-        
-        # Atualizar estatísticas
-        self.stats["total_input_tokens"] += in_tokens
-        self.stats["total_output_tokens"] += out_tokens
+        try:
+            qa_prompt = self._format_qa_prompt(query, selected_contexts)
+            current_answer, in_tokens, out_tokens = self._generate_llm_response(qa_prompt)
+            
+            # Atualizar estatísticas
+            self.stats["total_input_tokens"] += in_tokens
+            self.stats["total_output_tokens"] += out_tokens
+        except Exception as e:
+            logging.error(f"Erro ao gerar resposta inicial: {e}")
+            return {
+                "answer": f"Erro ao gerar resposta: {str(e)}",
+                "final_quality_score": 0,
+                "evaluation": "Erro no sistema de geração de resposta.",
+                "total_attempts": 1,
+                "context_used": selected_contexts,
+                "stats": self.stats,
+                "processing_time": time.time() - start_time
+            }
         
         # Avaliar resposta inicial
-        quality_score, evaluation = self._evaluate_answer(query, current_answer)
-        self.stats["quality_improvements"].append(quality_score)
-        self.stats["attempts"].append({
-            "attempt": attempt,
-            "answer": current_answer,
-            "evaluation": evaluation,
-            "quality_score": quality_score
-        })
-        
-        logging.info(f"Tentativa {attempt}: Resposta inicial gerada com qualidade {quality_score}/10")
+        try:
+            quality_score, evaluation = self._evaluate_answer(query, current_answer)
+            self.stats["quality_improvements"].append(quality_score)
+            self.stats["attempts"].append({
+                "attempt": attempt,
+                "answer": current_answer,
+                "evaluation": evaluation,
+                "quality_score": quality_score
+            })
+            
+            logging.info(f"Tentativa {attempt}: Resposta inicial gerada com qualidade {quality_score}/10")
+        except Exception as e:
+            logging.error(f"Erro ao avaliar resposta inicial: {e}")
+            # Continuar com uma pontuação padrão
+            quality_score = 5.0
+            evaluation = f"Erro na avaliação: {str(e)}"
+            self.stats["quality_improvements"].append(quality_score)
+            self.stats["attempts"].append({
+                "attempt": attempt,
+                "answer": current_answer,
+                "evaluation": evaluation,
+                "quality_score": quality_score
+            })
         
         # Loop de refinamento se necessário
         while attempt < self.max_attempts and quality_score < 7.0:
             attempt += 1
             logging.info(f"Tentativa {attempt}: Refinando resposta (qualidade atual: {quality_score}/10)")
             
-            # Gerar resposta refinada
-            refinement_prompt = self._format_refinement_prompt(
-                query, selected_contexts, current_answer, evaluation
-            )
-            
-            improved_answer, ref_in_tokens, ref_out_tokens = self._generate_llm_response(refinement_prompt)
-            
-            # Atualizar estatísticas
-            self.stats["total_input_tokens"] += ref_in_tokens
-            self.stats["total_output_tokens"] += ref_out_tokens
-            self.stats["additional_tokens"] += (ref_in_tokens + ref_out_tokens)
-            
-            # Avaliar resposta refinada
-            new_quality_score, new_evaluation = self._evaluate_answer(query, improved_answer)
-            
-            # Verificar se houve melhoria
-            if new_quality_score > quality_score:
-                improvement = new_quality_score - quality_score
-                logging.info(f"Tentativa {attempt}: Melhoria na qualidade: +{improvement:.2f} pontos")
+            try:
+                # Gerar resposta refinada
+                refinement_prompt = self._format_refinement_prompt(
+                    query, selected_contexts, current_answer, evaluation
+                )
                 
-                # Atualizar para a resposta melhorada
-                current_answer = improved_answer
-                quality_score = new_quality_score
-                evaluation = new_evaluation
-            else:
-                logging.info(f"Tentativa {attempt}: Sem melhoria na qualidade. Mantendo resposta anterior.")
-            
-            self.stats["quality_improvements"].append(new_quality_score)
-            self.stats["attempts"].append({
-                "attempt": attempt,
-                "answer": improved_answer,
-                "evaluation": new_evaluation,
-                "quality_score": new_quality_score
-            })
+                improved_answer, ref_in_tokens, ref_out_tokens = self._generate_llm_response(refinement_prompt)
+                
+                # Atualizar estatísticas
+                self.stats["total_input_tokens"] += ref_in_tokens
+                self.stats["total_output_tokens"] += ref_out_tokens
+                self.stats["additional_tokens"] += (ref_in_tokens + ref_out_tokens)
+                
+                # Avaliar resposta refinada
+                new_quality_score, new_evaluation = self._evaluate_answer(query, improved_answer)
+                
+                # Verificar se houve melhoria
+                if new_quality_score > quality_score:
+                    improvement = new_quality_score - quality_score
+                    logging.info(f"Tentativa {attempt}: Melhoria na qualidade: +{improvement:.2f} pontos")
+                    
+                    # Atualizar para a resposta melhorada
+                    current_answer = improved_answer
+                    quality_score = new_quality_score
+                    evaluation = new_evaluation
+                else:
+                    logging.info(f"Tentativa {attempt}: Sem melhoria na qualidade. Mantendo resposta anterior.")
+                
+                self.stats["quality_improvements"].append(new_quality_score)
+                self.stats["attempts"].append({
+                    "attempt": attempt,
+                    "answer": improved_answer,
+                    "evaluation": new_evaluation,
+                    "quality_score": new_quality_score
+                })
+            except Exception as e:
+                logging.error(f"Erro durante a tentativa {attempt} de refinamento: {e}")
+                # Sair do loop se houver falha no refinamento
+                break
         
         # Preparar resultado final
         processing_time = time.time() - start_time
@@ -495,13 +552,17 @@ def run_self_rag_tests(
             "total_additional_tokens": 0,
             "avg_quality_score": 0,
             "avg_attempts": 0,
-            "processing_time": 0
+            "processing_time": 0,
+            "successful_questions": 0,
+            "failed_questions": 0
         }
     }
     
     # Processar cada categoria de perguntas
     total_start_time = time.time()
     total_questions = 0
+    successful_questions = 0
+    failed_questions = 0
     all_quality_scores = []
     all_attempts = []
     total_tokens = 0
@@ -541,41 +602,57 @@ def run_self_rag_tests(
                 
                 # Acumular estatísticas
                 total_questions += 1
-                all_quality_scores.append(qa_result["final_quality_score"])
-                all_attempts.append(qa_result["total_attempts"])
                 
-                tokens_in_this_query = qa_result["stats"]["total_input_tokens"] + qa_result["stats"]["total_output_tokens"]
-                total_tokens += tokens_in_this_query
-                total_additional_tokens += qa_result["stats"]["additional_tokens"]
+                # Verificar se a pergunta foi processada com sucesso
+                if "final_quality_score" in qa_result and qa_result["final_quality_score"] > 0:
+                    successful_questions += 1
+                    all_quality_scores.append(qa_result["final_quality_score"])
+                    all_attempts.append(qa_result["total_attempts"])
+                    
+                    tokens_in_this_query = qa_result["stats"]["total_input_tokens"] + qa_result["stats"]["total_output_tokens"]
+                    total_tokens += tokens_in_this_query
+                    total_additional_tokens += qa_result["stats"]["additional_tokens"]
+                    
+                    # Mostrar resultado da pergunta
+                    print(f"\nResposta final: {qa_result['answer'][:150]}...")
+                    print(f"Qualidade: {qa_result['final_quality_score']}/10")
+                    print(f"Tentativas: {qa_result['total_attempts']}/{max_attempts}")
+                    print(f"Tokens: {tokens_in_this_query} (Adicionais: {qa_result['stats']['additional_tokens']})")
+                else:
+                    # Se houve erro, a pergunta não foi processada completamente
+                    failed_questions += 1
+                    print(f"\nProcessamento incompleto ou com falha: {qa_result.get('answer', 'Erro desconhecido')[:150]}...")
                 
-                # Mostrar resultado da pergunta
-                print(f"\nResposta final: {qa_result['answer'][:150]}...")
-                print(f"Qualidade: {qa_result['final_quality_score']}/10")
-                print(f"Tentativas: {qa_result['total_attempts']}/{max_attempts}")
-                print(f"Tokens: {tokens_in_this_query} (Adicionais: {qa_result['stats']['additional_tokens']})")
                 print(f"{'='*60}\n")
                 
             except Exception as e:
                 logging.error(f"Erro processando pergunta {q_id}: {e}")
                 print(f"ERRO em {q_id}: {e}")
                 # Registrar erro no resultado
+                failed_questions += 1
+                total_questions += 1
                 error_result = {
                     "question_id": q_id,
                     "question": query,
                     "complexity": complexity,
-                    "error": str(e)
+                    "error": str(e),
+                    "answer": f"Erro: {str(e)}",
+                    "final_quality_score": 0,
+                    "total_attempts": 0
                 }
                 results["results_by_category"][category].append(error_result)
     
     # Finalizar estatísticas
     total_processing_time = time.time() - total_start_time
     
-    # Calcular médias
-    avg_quality = sum(all_quality_scores) / max(len(all_quality_scores), 1)
-    avg_attempts = sum(all_attempts) / max(len(all_attempts), 1)
+    # Calcular médias (evitando divisão por zero)
+    avg_quality = sum(all_quality_scores) / max(len(all_quality_scores), 1) if all_quality_scores else 0
+    avg_attempts = sum(all_attempts) / max(len(all_attempts), 1) if all_attempts else 0
     
     # Atualizar resumo
     results["summary"]["total_questions"] = total_questions
+    results["summary"]["successful_questions"] = successful_questions
+    results["summary"]["failed_questions"] = failed_questions
     results["summary"]["total_tokens"] = total_tokens
     results["summary"]["total_additional_tokens"] = total_additional_tokens
     results["summary"]["avg_quality_score"] = avg_quality
@@ -595,12 +672,24 @@ def run_self_rag_tests(
     # Gerar relatório resumido
     print(f"\n{'='*30} RELATÓRIO RESUMIDO {'='*30}")
     print(f"Total de perguntas: {total_questions}")
+    print(f"Perguntas processadas com sucesso: {successful_questions}")
+    print(f"Perguntas com falha: {failed_questions}")
     print(f"Tempo total de processamento: {total_processing_time:.2f}s")
-    print(f"Qualidade média das respostas: {avg_quality:.2f}/10")
-    print(f"Média de tentativas por pergunta: {avg_attempts:.2f}/{max_attempts}")
-    print(f"Total de tokens consumidos: {total_tokens}")
-    print(f"Tokens adicionais (avaliação/refinamento): {total_additional_tokens}")
-    print(f"Eficiência de refinamento: {(total_additional_tokens/total_tokens*100):.2f}% tokens adicionais")
+    
+    if successful_questions > 0:
+        print(f"Qualidade média das respostas: {avg_quality:.2f}/10")
+        print(f"Média de tentativas por pergunta: {avg_attempts:.2f}/{max_attempts}")
+        print(f"Total de tokens consumidos: {total_tokens}")
+        print(f"Tokens adicionais (avaliação/refinamento): {total_additional_tokens}")
+        
+        # Calcular eficiência de refinamento (evitando divisão por zero)
+        if total_tokens > 0:
+            efficiency = (total_additional_tokens / total_tokens) * 100
+            print(f"Eficiência de refinamento: {efficiency:.2f}% tokens adicionais")
+        else:
+            print("Eficiência de refinamento: N/A (sem tokens processados)")
+    else:
+        print("Não há estatísticas de qualidade para exibir: nenhuma pergunta processada com sucesso.")
     
     # Análise por complexidade
     complexity_data = {}
@@ -615,14 +704,28 @@ def run_self_rag_tests(
                         "attempts": []
                     }
                 complexity_data[complexity]["count"] += 1
-                complexity_data[complexity]["quality_scores"].append(item["final_quality_score"])
-                complexity_data[complexity]["attempts"].append(item["total_attempts"])
+                
+                # Só adicionar à estatística se tiver uma pontuação válida
+                if item["final_quality_score"] > 0:
+                    complexity_data[complexity]["quality_scores"].append(item["final_quality_score"])
+                    complexity_data[complexity]["attempts"].append(item.get("total_attempts", 0))
     
-    print("\nAnálise por complexidade:")
-    for complexity, data in complexity_data.items():
-        avg_q = sum(data["quality_scores"]) / max(len(data["quality_scores"]), 1)
-        avg_a = sum(data["attempts"]) / max(len(data["attempts"]), 1)
-        print(f"- {complexity.upper()}: {data['count']} perguntas, Qualidade média: {avg_q:.2f}/10, Tentativas médias: {avg_a:.2f}")
+    if complexity_data:
+        print("\nAnálise por complexidade:")
+        for complexity, data in complexity_data.items():
+            # Calcular médias (evitando divisão por zero)
+            quality_scores = data["quality_scores"]
+            attempts = data["attempts"]
+            
+            avg_q = sum(quality_scores) / max(len(quality_scores), 1) if quality_scores else 0
+            avg_a = sum(attempts) / max(len(attempts), 1) if attempts else 0
+            
+            success_count = len(quality_scores)
+            total_count = data["count"]
+            success_rate = (success_count / total_count * 100) if total_count > 0 else 0
+            
+            print(f"- {complexity.upper()}: {total_count} perguntas ({success_count} sucesso, {success_rate:.1f}%), " +
+                  f"Qualidade média: {avg_q:.2f}/10, Tentativas médias: {avg_a:.2f}")
     
     return results
 

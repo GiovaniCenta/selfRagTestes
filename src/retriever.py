@@ -8,7 +8,7 @@ from typing import List, Dict, Any, Tuple, Optional
 # Assuming access to the embedding model function from data_loader
 from .data_loader import get_embedding_model 
 # Corrected import: Removed _get_cosmos_container
-from .indexer import _get_chroma_collection, CHROMA_COLLECTION_NAME
+from .indexer import _get_chroma_collection
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - RETRIEVER - %(levelname)s - %(message)s')
@@ -19,6 +19,8 @@ EMBEDDING_MODEL_NAME = "intfloat/multilingual-e5-large-instruct"
 # Define path relative to project root
 _PROJECT_ROOT_RET = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHROMA_PERSIST_DIR = os.path.join(_PROJECT_ROOT_RET, "chroma_db_index")
+# Nome da coleção - usa o nome disponível na base
+CHROMA_COLLECTION_NAME = "acordaos"  # Corrigido: era acordaos_legal_bertimbau
 # Prefix for query embeddings (as recommended for E5 models)
 QUERY_PREFIX = "query: "
 

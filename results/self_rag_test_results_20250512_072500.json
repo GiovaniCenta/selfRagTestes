@@ -1,0 +1,329 @@
+{
+  "metadata": {
+    "timestamp": "2025-05-12_07-24-47",
+    "config": {
+      "initial_k": 10,
+      "reranker_n": 5,
+      "max_attempts": 3,
+      "temperature": 0.1,
+      "max_tokens": 250,
+      "select_category": "",
+      "select_question": ""
+    }
+  },
+  "results_by_category": {
+    "acordao_733_2025": [
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 12.615624904632568,
+        "question_id": "733_simples_1",
+        "question": "Qual a principal conclusão do TCU em relação ao BNDES no Acórdão 733/2025?",
+        "complexity": "simples"
+      },
+      {
+        "question_id": "733_simples_1",
+        "question": "Qual a principal conclusão do TCU em relação ao BNDES no Acórdão 733/2025?",
+        "complexity": "simples",
+        "error": "'final_quality_score'"
+      },
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.0030655860900878906,
+        "question_id": "733_resumo_1",
+        "question": "Resuma a controvérsia sobre o status do BNDES como empresa dependente da União.",
+        "complexity": "média"
+      },
+      {
+        "question_id": "733_resumo_1",
+        "question": "Resuma a controvérsia sobre o status do BNDES como empresa dependente da União.",
+        "complexity": "média",
+        "error": "'final_quality_score'"
+      },
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.001997232437133789,
+        "question_id": "733_contraste_1",
+        "question": "Explique as contradições presentes entre as diferentes interpretações sobre os recursos utilizados pelo BNDES e seu status como dependente ou não da União.",
+        "complexity": "complexa"
+      },
+      {
+        "question_id": "733_contraste_1",
+        "question": "Explique as contradições presentes entre as diferentes interpretações sobre os recursos utilizados pelo BNDES e seu status como dependente ou não da União.",
+        "complexity": "complexa",
+        "error": "'final_quality_score'"
+      },
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.0019459724426269531,
+        "question_id": "733_especifica_1",
+        "question": "O que o TCU determinou sobre a participação nos lucros e resultados (PLR) paga aos funcionários do BNDES?",
+        "complexity": "média"
+      },
+      {
+        "question_id": "733_especifica_1",
+        "question": "O que o TCU determinou sobre a participação nos lucros e resultados (PLR) paga aos funcionários do BNDES?",
+        "complexity": "média",
+        "error": "'final_quality_score'"
+      },
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.001965761184692383,
+        "question_id": "733_analise_1",
+        "question": "Por que o TCU considerou que o BNDES deveria estar sujeito ao teto remuneratório constitucional, e quais as implicações desta decisão?",
+        "complexity": "complexa"
+      },
+      {
+        "question_id": "733_analise_1",
+        "question": "Por que o TCU considerou que o BNDES deveria estar sujeito ao teto remuneratório constitucional, e quais as implicações desta decisão?",
+        "complexity": "complexa",
+        "error": "'final_quality_score'"
+      }
+    ],
+    "acordao_764_2025": [
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.0015976428985595703,
+        "question_id": "764_simples_1",
+        "question": "Qual o objeto da representação no processo TC 024.887/2024-2?",
+        "complexity": "simples"
+      },
+      {
+        "question_id": "764_simples_1",
+        "question": "Qual o objeto da representação no processo TC 024.887/2024-2?",
+        "complexity": "simples",
+        "error": "'final_quality_score'"
+      },
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.002847909927368164,
+        "question_id": "764_contraste_1",
+        "question": "Compare as diferentes versões sobre a contratação realizada pelo Crea/SP mencionadas nos resumos.",
+        "complexity": "complexa"
+      },
+      {
+        "question_id": "764_contraste_1",
+        "question": "Compare as diferentes versões sobre a contratação realizada pelo Crea/SP mencionadas nos resumos.",
+        "complexity": "complexa",
+        "error": "'final_quality_score'"
+      },
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.0021440982818603516,
+        "question_id": "764_especifica_1",
+        "question": "Que empresa foi apontada como beneficiária de direcionamento na contratação realizada pelo Crea/SP?",
+        "complexity": "simples"
+      },
+      {
+        "question_id": "764_especifica_1",
+        "question": "Que empresa foi apontada como beneficiária de direcionamento na contratação realizada pelo Crea/SP?",
+        "complexity": "simples",
+        "error": "'final_quality_score'"
+      },
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.0024127960205078125,
+        "question_id": "764_medidas_1",
+        "question": "Quais foram as medidas determinadas pelo TCU em relação ao contrato do Crea/SP no Acórdão 764/2025?",
+        "complexity": "média"
+      },
+      {
+        "question_id": "764_medidas_1",
+        "question": "Quais foram as medidas determinadas pelo TCU em relação ao contrato do Crea/SP no Acórdão 764/2025?",
+        "complexity": "média",
+        "error": "'final_quality_score'"
+      },
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.002592325210571289,
+        "question_id": "764_analise_1",
+        "question": "Analise as razões que levaram o TCU a determinar o ressarcimento pela empresa contratada pelo Crea/SP.",
+        "complexity": "complexa"
+      },
+      {
+        "question_id": "764_analise_1",
+        "question": "Analise as razões que levaram o TCU a determinar o ressarcimento pela empresa contratada pelo Crea/SP.",
+        "complexity": "complexa",
+        "error": "'final_quality_score'"
+      }
+    ],
+    "questoes_complexas": [
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.0023131370544433594,
+        "question_id": "complexa_comparativa_1",
+        "question": "Compare os processos de tomada de decisão do TCU nos Acórdãos 733/2025 e 764/2025, identificando semelhanças e diferenças na aplicação das normas de controle.",
+        "complexity": "muito complexa"
+      },
+      {
+        "question_id": "complexa_comparativa_1",
+        "question": "Compare os processos de tomada de decisão do TCU nos Acórdãos 733/2025 e 764/2025, identificando semelhanças e diferenças na aplicação das normas de controle.",
+        "complexity": "muito complexa",
+        "error": "'final_quality_score'"
+      },
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.0022153854370117188,
+        "question_id": "complexa_733_1",
+        "question": "Avalie os argumentos contraditórios sobre o BNDES ser dependente ou não da União, considerando as fontes de recursos mencionadas nos resumos.",
+        "complexity": "muito complexa"
+      },
+      {
+        "question_id": "complexa_733_1",
+        "question": "Avalie os argumentos contraditórios sobre o BNDES ser dependente ou não da União, considerando as fontes de recursos mencionadas nos resumos.",
+        "complexity": "muito complexa",
+        "error": "'final_quality_score'"
+      },
+      {
+        "answer": "Não foi possível recuperar informações para responder à pergunta.",
+        "attempt": 1,
+        "quality_score": 0,
+        "context_used": [],
+        "stats": {
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "additional_tokens": 0,
+          "quality_improvements": [],
+          "attempts": []
+        },
+        "processing_time": 0.00225067138671875,
+        "question_id": "complexa_764_1",
+        "question": "Analise como as decisões contraditórias apresentadas nos resumos sobre o contrato do Crea/SP poderiam ser conciliadas para formar uma interpretação coerente do caso.",
+        "complexity": "muito complexa"
+      },
+      {
+        "question_id": "complexa_764_1",
+        "question": "Analise como as decisões contraditórias apresentadas nos resumos sobre o contrato do Crea/SP poderiam ser conciliadas para formar uma interpretação coerente do caso.",
+        "complexity": "muito complexa",
+        "error": "'final_quality_score'"
+      }
+    ]
+  },
+  "summary": {
+    "total_questions": 13,
+    "total_tokens": 0,
+    "total_additional_tokens": 0,
+    "avg_quality_score": 0.0,
+    "avg_attempts": 0.0,
+    "processing_time": 12.656127452850342
+  }
+}

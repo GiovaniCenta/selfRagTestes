@@ -45,8 +45,59 @@ def main():
                         help="Categoria específica para testar (acordao_733_2025, acordao_764_2025 ou questoes_complexas). Se vazio, testa todas.")
     parser.add_argument("--select_question", type=str, default="",
                         help="ID específico de uma pergunta para testar (ex: 733_simples_1). Se vazio, testa todas da categoria.")
+    parser.add_argument("--debug", action="store_true",
+                        help="Ativa modo de debug com mais informações de diagnóstico")
     
     args = parser.parse_args()
+    
+    # Se modo debug ativado, configurar logging para DEBUG
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logging.debug("Modo DEBUG ativado")
+        
+        # Verificar ambiente e configurações
+        print("\n=== DIAGNÓSTICO DO AMBIENTE ===")
+        print(f"Diretório atual: {os.getcwd()}")
+        print(f"Path do Python: {sys.path}")
+        print(f"Verificando diretório ChromaDB: {os.path.join(os.getcwd(), 'chroma_db_index')}")
+        
+        # Verificar se o diretório ChromaDB existe
+        chroma_dir = os.path.join(os.getcwd(), 'chroma_db_index')
+        if os.path.exists(chroma_dir):
+            print(f"✓ Diretório ChromaDB existe em: {chroma_dir}")
+            # Listar conteúdo do diretório
+            print("Conteúdo do diretório ChromaDB:")
+            for item in os.listdir(chroma_dir):
+                print(f"  - {item}")
+            
+            # Verificar se existe collections.sqlite3
+            if os.path.exists(os.path.join(chroma_dir, 'collections.sqlite3')):
+                print("✓ Arquivo collections.sqlite3 encontrado")
+                
+                # Se possível, verificar collections no ChromaDB
+                try:
+                    import chromadb
+                    client = chromadb.PersistentClient(path=chroma_dir)
+                    collections = client.list_collections()
+                    print(f"Collections no ChromaDB ({len(collections)}):")
+                    for collection in collections:
+                        print(f"  - {collection.name} ({collection.count()} itens)")
+                except Exception as e:
+                    print(f"Erro ao acessar ChromaDB: {e}")
+        else:
+            print(f"✗ Diretório ChromaDB NÃO existe em: {chroma_dir}")
+        
+        # Verificar imports
+        print("\nVerificando imports:")
+        required_modules = ["torch", "transformers", "sentence_transformers", "chromadb"]
+        for module in required_modules:
+            try:
+                __import__(module)
+                print(f"✓ Módulo {module} importado com sucesso")
+            except ImportError as e:
+                print(f"✗ Erro ao importar {module}: {e}")
+                
+        print("=== FIM DO DIAGNÓSTICO ===\n")
     
     print("\n" + "="*30 + " TESTES AUTOMATIZADOS SELF-RAG " + "="*30)
     print("Configurações:")
@@ -77,6 +128,32 @@ def main():
             select_category=args.select_category,
             select_question=args.select_question
         )
+        
+        # Gerar relatório final
+        try:
+            print(f"\n{'='*30} RELATÓRIO RESUMIDO {'='*30}")
+            print(f"Total de perguntas: {results['summary']['total_questions']}")
+            print(f"Tempo total de processamento: {results['summary']['processing_time']:.2f}s")
+            
+            # Evitar divisão por zero nos cálculos de média
+            if results['summary']['total_questions'] > 0:
+                print(f"Qualidade média das respostas: {results['summary']['avg_quality_score']:.2f}/10")
+                print(f"Média de tentativas por pergunta: {results['summary']['avg_attempts']:.2f}/{args.max_attempts}")
+                print(f"Total de tokens consumidos: {results['summary']['total_tokens']}")
+                print(f"Tokens adicionais (avaliação/refinamento): {results['summary']['total_additional_tokens']}")
+                
+                # Calcular eficiência de refinamento com proteção contra divisão por zero
+                total_tokens = results['summary']['total_tokens']
+                if total_tokens > 0:
+                    efficiency = (results['summary']['total_additional_tokens'] / total_tokens * 100)
+                    print(f"Eficiência de refinamento: {efficiency:.2f}% tokens adicionais")
+                else:
+                    print("Eficiência de refinamento: N/A (sem tokens processados)")
+            else:
+                print("Não há estatísticas para exibir: nenhuma pergunta processada com sucesso.")
+        except Exception as report_e:
+            logging.error(f"Erro ao gerar relatório resumido: {report_e}")
+            print("\nErro ao gerar relatório resumido.")
         
         print(f"\nTestes concluídos em {time.time() - start_time:.2f} segundos.")
         print(f"Resultados completos salvos em: {args.output_dir}")
